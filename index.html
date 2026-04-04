@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR" x-data="app()" x-cloak>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minha Aplicação</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary:        '#A7C7E7',
+            'primary-dark': '#7BAED4',
+            success:        '#B4E7CE',
+            warning:        '#FFE5B4',
+            danger:         '#FFB4B4',
+            info:           '#E0BBE4',
+            bg: {
+              light:  '#F8F9FA',
+              medium: '#E9ECEF',
+              dark:   '#2C3E50'
+            },
+            text: {
+              main:  '#2D3748',
+              muted: '#718096'
+            },
+            border: '#E2E8F0'
+          },
+          fontFamily: {
+            sans:    ['Inter', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <script>
+    const INITIAL_DATA = {
+      alertasCount: JSON.parse("<?= JSON.stringify(alertasCount) ?>"),
+      userRole:     JSON.parse("<?= JSON.stringify(userRole) ?>"),
+      userEmail:    JSON.parse("<?= JSON.stringify(userEmail) ?>"),
+    };
+  </script>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://unpkg.com/@popperjs/core@2/dist/umd/popper.min.js"></script>
+  <script src="https://unpkg.com/tippy.js@6/dist/tippy-bundle.umd.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css">
+
+  <?!= include('_styles') ?>
+</head>
+
+<body class="flex h-screen overflow-hidden bg-bg-light">
+
+  <div id="toast-container" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2.5 pointer-events-none"></div>
+
+  <div id="loading-overlay" class="loading-overlay">
+    <div class="loading-box">
+      <div class="loading-spinner"></div>
+      <p id="loading-message" class="text-sm font-medium text-text-main">Aguarde...</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ MODAL ════ -->
+  <div class="modal-overlay"
+      x-show="modal.open"
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"
+      x-transition:leave="transition ease-in duration-150"
+      x-transition:leave-start="opacity-100"
+      x-transition:leave-end="opacity-0"
+      @keydown.escape.window="closeModal()"
+      x-cloak>
+    <div class="modal-box"
+        :class="`modal-${modal.size}`"
+        @click.stop>
+
+      <div class="modal-header">
+        <h2 class="font-heading font-semibold text-text-main text-base" x-text="modal.title"></h2>
+        <button class="w-8 h-8 rounded-lg border border-border flex items-center justify-center
+                      text-text-muted hover:border-primary hover:text-primary transition-all"
+                @click="closeModal()" title="Fechar">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <?!= include('modals') ?>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-outline" @click="closeModal()" x-text="modal.cancelLabel"></button>
+        <template x-if="modal.showConfirm">
+          <button :class="modal.confirmVariant === 'danger' ? 'btn-danger' : 'btn-primary'"
+                  @click="modal.onConfirm && modal.onConfirm()">
+            <span x-text="modal.confirmLabel"></span>
+          </button>
+        </template>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ CONFIRM ═══ -->
+  <div class="confirm-overlay"
+      x-show="confirmDialog.open"
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"
+      x-transition:leave="transition ease-in duration-150"
+      x-transition:leave-start="opacity-100"
+      x-transition:leave-end="opacity-0"
+      @keydown.escape.window="resolveConfirm(false)"
+      x-cloak>
+    <div class="confirm-box" @click.stop>
+
+      <div class="modal-header">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+              :class="confirmDialog.variant === 'danger' ? 'bg-red-100' : 'bg-primary/20'">
+            <i :data-lucide="confirmDialog.variant === 'danger' ? 'alert-triangle' : 'help-circle'"
+              class="w-5 h-5"
+              :class="confirmDialog.variant === 'danger' ? 'text-red-500' : 'text-primary-dark'"></i>
+          </div>
+          <h2 class="font-heading font-semibold text-text-main text-base" x-text="confirmDialog.message"></h2>
+        </div>
+      </div>
+
+      <template x-if="confirmDialog.detail">
+        <p class="px-6 py-4 text-sm text-text-muted border-b border-border" x-text="confirmDialog.detail"></p>
+      </template>
+
+      <div class="modal-footer">
+        <button class="btn-outline" @click="resolveConfirm(false)">Cancelar</button>
+        <button :class="confirmDialog.variant === 'danger' ? 'btn-danger' : 'btn-primary'"
+                @click="resolveConfirm(true)">
+          <span x-text="confirmDialog.confirmLabel"></span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="mobile-overlay"
+       class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 hidden transition-opacity duration-300 opacity-0"
+       aria-hidden="true"></div>
+
+  <!-- ═══════════════════════════════════════════ SIDEBAR ═══ -->
+  <aside id="sidebar" class="sidebar flex flex-col h-screen sidebar-expanded">
+
+    <div class="h-16 flex items-center justify-between border-b border-white/10 flex-shrink-0 brand-wrapper px-5">
+      <div class="flex flex-col justify-center brand-container overflow-hidden whitespace-nowrap">
+        <span class="font-heading font-bold text-2xl tracking-tight text-white sidebar-text leading-tight">App</span>
+        <span class="text-[10px] text-white/50 sidebar-text leading-tight">Subtítulo da aplicação</span>
+      </div>
+
+      <button id="sidebar-toggle"
+              class="desktop-only w-8 h-8 rounded-lg items-center justify-center transition-colors"
+              title="Recolher menu">
+        <i id="chevron-icon" data-lucide="chevron-left" class="w-[18px] h-[18px]"></i>
+      </button>
+
+      <button id="mobile-close-btn"
+              class="mobile-only w-8 h-8 rounded-lg text-white/70 hover:text-white hover:bg-white/10 items-center justify-center transition-colors">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto overflow-x-hidden">
+      <template x-for="item in navItems" :key="item.id">
+        <div class="nav-item rounded-lg px-3 py-2.5 flex items-center gap-3 relative"
+             :class="{ active: currentView === item.id }"
+             :data-tippy-label="item.label"
+             tabindex="0"
+             role="button"
+             :aria-label="item.label"
+             @click="navigate(item.id)"
+             @keydown.enter="navigate(item.id)">
+          <span class="nav-icon flex-shrink-0" x-html="item.icon"></span>
+          <span class="nav-label sidebar-text text-sm font-medium flex-1" x-text="item.label"></span>
+          <template x-if="item.badge">
+            <span class="badge badge-danger" x-text="item.badge"></span>
+          </template>
+        </div>
+      </template>
+    </nav>
+
+    <div class="px-3 py-3 border-t border-white/10 flex-shrink-0 user-info-container">
+      <div class="flex items-center gap-3 user-info-wrapper">
+        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-info
+                    flex items-center justify-center
+                    text-white text-xs font-bold flex-shrink-0 shadow-lg cursor-default"
+             :title="userEmail"
+             x-text="userInitial">
+        </div>
+        <div class="overflow-hidden user-info-text min-w-0">
+          <p class="text-sm font-medium text-white truncate"
+             x-text="userEmail"
+             :title="userEmail"></p>
+          <p class="text-[11px] text-white/50 truncate" x-text="roleLabel(userRole)"></p>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ═══════════════════════════════════════════ MAIN ═══════ -->
+  <div class="flex flex-col flex-1 overflow-hidden">
+
+    <header class="topbar flex items-center justify-between px-4 md:px-6 h-16 flex-shrink-0">
+
+      <button id="mobile-menu-btn"
+              class="mobile-only -ml-1 mr-2 p-2 rounded-lg text-text-muted
+                     hover:text-text-main hover:bg-bg-medium transition-colors
+                     items-center justify-center">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+      </button>
+
+      <div class="min-w-0 flex-1">
+        <h1 class="view-title text-base md:text-lg leading-tight truncate" x-text="currentPageTitle()"></h1>
+        <p class="text-text-muted text-xs mt-0.5 hidden md:block" x-text="currentPageSubtitle()"></p>
+      </div>
+
+      <div class="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
+
+        <button class="relative w-8 h-8 rounded-lg border border-border flex items-center justify-center
+                       text-text-muted hover:border-primary hover:text-primary transition-all overflow-visible"
+                @click="navigate('alertas')"
+                title="Ver alertas">
+          <i data-lucide="bell" class="w-4 h-4"></i>
+          <template x-if="alertasCount > 0">
+            <span class="absolute -top-2 -right-2 badge badge-danger" x-text="badgeLabel(alertasCount)"></span>
+          </template>
+        </button>
+
+      </div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-6">
+      <?!= include('view-dashboard') ?>
+      <?!= include('view-alertas') ?>
+      <?!= include('view-usuarios') ?>
+    </main>
+  </div>
+
+  <?!= include('_scripts') ?>
+
+</body>
+</html>

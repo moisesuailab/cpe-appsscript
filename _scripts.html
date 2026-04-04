@@ -1,0 +1,492 @@
+<script defer src="https://unpkg.com/alpinejs@3.14.9/dist/cdn.min.js"></script>
+
+<script>
+  const DATA = (typeof INITIAL_DATA !== 'undefined') ? INITIAL_DATA : { userEmail: 'dev@exemplo.com', alertasCount: 0, userRole: 'viewer' };
+
+  const ROLES = {
+    ADMIN:  'admin',
+    EDITOR: 'editor',
+    VIEWER: 'viewer',
+
+    CONFIG: {
+      admin:  { label: 'Administrador', badgeLabel: 'Admin',         badgeClass: 'badge-primary' },
+      editor: { label: 'Editor',        badgeLabel: 'Editor',        badgeClass: 'badge-info'    },
+      viewer: { label: 'Visualizador',  badgeLabel: 'Visualizador',  badgeClass: 'badge-success' },
+    },
+
+    get(role) { return this.CONFIG[role] || null; },
+    label(role) { return this.CONFIG[role]?.label || 'Sem acesso'; },
+    badgeLabel(role) { return this.CONFIG[role]?.badgeLabel || role; },
+    badgeClass(role) { return this.CONFIG[role]?.badgeClass || 'badge-primary'; },
+  };
+
+  const ListUtils = {
+
+    filter(items, search, searchFields, filterValue, filterField) {
+      const term = search.toLowerCase().trim();
+      return items.filter(item => {
+        const matchSearch = !term || searchFields.some(f =>
+          String(item[f] ?? '').toLowerCase().includes(term)
+        );
+        const matchFilter = !filterValue || item[filterField] === filterValue;
+        return matchSearch && matchFilter;
+      });
+    },
+
+    totalPages(filteredLength, perPage) {
+      return Math.max(1, Math.ceil(filteredLength / perPage));
+    },
+
+    paged(filtered, page, perPage) {
+      const start = (page - 1) * perPage;
+      return filtered.slice(start, start + perPage);
+    },
+
+  };
+
+  function usersModule() {
+    return {
+      users:          [],
+      newUser:        { email: '', role: ROLES.VIEWER },
+      userSearch:     '',
+      userRoleFilter: '',
+      usersPage:      1,
+      usersPerPage:   10,
+      editingUser:    { email: '', role: ROLES.VIEWER },
+
+      initUsers() {
+        this.$watch('userSearch',     () => { this.usersPage = 1; this.$nextTick(() => lucide.createIcons()); });
+        this.$watch('userRoleFilter', () => { this.usersPage = 1; this.$nextTick(() => lucide.createIcons()); });
+        this.$watch('usersPage',      () => { this.$nextTick(() => lucide.createIcons()); });
+
+        window.addEventListener('app:navigate', (e) => {
+          if (e.detail.viewId === 'usuarios' && this.users.length === 0) this.loadUsers();
+        });
+      },
+
+      loadUsers() {
+        Loading.show('Carregando usuários...');
+        google.script.run
+          .withSuccessHandler((data) => {
+            this.users = data || [];
+            Loading.hide();
+            this.$nextTick(() => lucide.createIcons());
+          })
+          .withFailureHandler((err) => {
+            Loading.hide();
+            Toast.error(err.message || 'Erro ao carregar usuários.');
+          })
+          .userGetAll();
+      },
+
+      addUser() {
+        if (!this.newUser.email) return Toast.warning('Informe um e-mail.');
+        Loading.show('Adicionando usuário...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              this.users.push({ email: this.newUser.email, role: this.newUser.role });
+              this.newUser = { email: '', role: ROLES.VIEWER };
+              this.closeModal();
+              Toast.success(res.message);
+              this.$nextTick(() => lucide.createIcons());
+            } else {
+              Toast.error(res.message);
+            }
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .userAdd(this.newUser.email, this.newUser.role);
+      },
+
+      saveEditUser() {
+        Loading.show('Atualizando perfil...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              const u = this.users.find(u => u.email === this.editingUser.email);
+              if (u) u.role = this.editingUser.role;
+              this.closeModal();
+              Toast.success(res.message);
+            } else {
+              Toast.error(res.message);
+            }
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .userUpdateRole(this.editingUser.email, this.editingUser.role);
+      },
+
+      removeUser(email) {
+        this.showConfirm({
+          message:      'Remover usuário?',
+          detail:       `O e-mail '${email}' perderá o acesso imediatamente.`,
+          confirmLabel: 'Remover',
+          variant:      'danger',
+          onConfirm: () => {
+            Loading.show('Removendo usuário...');
+            google.script.run
+              .withSuccessHandler((res) => {
+                Loading.hide();
+                if (res.status === 'success') {
+                  this.users = this.users.filter(u => u.email !== email);
+                  Toast.success(res.message);
+                } else {
+                  Toast.error(res.message);
+                }
+              })
+              .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+              .userRemove(email);
+          },
+        });
+      },
+
+      openViewUser(u) {
+        this.editingUser = { ...u };
+        this.openModal({
+          title:       'Detalhes do Usuário',
+          size:        'sm',
+          contentKey:  'viewUser',
+          cancelLabel: 'Fechar',
+          showConfirm: false,
+        });
+      },
+
+      openEditUser(u) {
+        this.editingUser = { ...u };
+        this.openModal({
+          title:        'Editar Usuário',
+          size:         'sm',
+          contentKey:   'editUser',
+          confirmLabel: 'Salvar',
+          onConfirm:    () => this.saveEditUser(),
+        });
+      },
+    };
+  }
+
+  function modalModule() {
+    return {
+      modal: {
+        open: false, title: '', size: 'md',
+        contentKey: '', confirmLabel: 'Confirmar',
+        cancelLabel: 'Cancelar', showConfirm: true,
+        confirmVariant: 'primary', onConfirm: null,
+      },
+
+      confirmDialog: {
+        open: false, message: '', detail: '',
+        confirmLabel: 'Confirmar', variant: 'danger', onConfirm: null,
+      },
+
+      openModal(config) {
+        this.modal = {
+          open: true, size: 'md',
+          confirmLabel: 'Confirmar', cancelLabel: 'Cancelar',
+          showConfirm: true, confirmVariant: 'primary',
+          onConfirm: null,
+          ...config,
+        };
+        this.$nextTick(() => lucide.createIcons());
+      },
+
+      closeModal() { this.modal.open = false; },
+
+      showConfirm({ message, detail = '', confirmLabel = 'Confirmar', variant = 'danger', onConfirm }) {
+        this.confirmDialog = { open: true, message, detail, confirmLabel, variant, onConfirm };
+      },
+
+      resolveConfirm(confirmed) {
+        if (confirmed && typeof this.confirmDialog.onConfirm === 'function') {
+          this.confirmDialog.onConfirm();
+        }
+        this.confirmDialog.open = false;
+      },
+    };
+  }
+
+  function navigationModule() {
+    return {
+      currentView: 'dashboard',
+      navItems:    [],
+
+      pageConfig: {
+        dashboard: { title: 'Dashboard', subtitle: 'Visão geral da aplicação' },
+        alertas:   { title: 'Alertas',   subtitle: 'Notificações e avisos pendentes' },
+        usuarios:  { title: 'Usuários',  subtitle: 'Gerencie os acessos e permissões da aplicação' },
+      },
+
+      navigate(viewId) {
+        this.currentView = viewId;
+        window.dispatchEvent(new CustomEvent('app:navigate', { detail: { viewId } }));
+      },
+
+      _buildNavItems() {
+        const items = [
+          { id: 'dashboard', label: 'Dashboard', icon: lucideIcon('layout-dashboard'), badge: null },
+          { id: 'alertas',   label: 'Alertas',   icon: lucideIcon('bell'), badge: this.badgeLabel(this.alertasCount) },
+        ];
+        if (this.userRole === ROLES.ADMIN) {
+          items.push({ id: 'usuarios', label: 'Usuários', icon: lucideIcon('users'), badge: null });
+        }
+        this.navItems = items;
+      },
+
+      currentPageTitle()    { return this.pageConfig[this.currentView]?.title    || ''; },
+      currentPageSubtitle() { return this.pageConfig[this.currentView]?.subtitle || ''; },
+    };
+  }
+
+  function app() {
+    return {
+      ...usersModule(),
+      ...modalModule(),
+      ...navigationModule(),
+
+      userEmail:    DATA.userEmail,
+      userInitial:  DATA.userEmail.charAt(0).toUpperCase(),
+      alertasCount: DATA.alertasCount,
+      userRole:     DATA.userRole,
+
+      init() {
+        this._buildNavItems();
+        this.initUsers();
+        this.$nextTick(() => {
+          lucide.createIcons();
+          Sidebar.init();
+        });
+      },
+
+      canEdit()  { return [ROLES.ADMIN, ROLES.EDITOR].includes(this.userRole); },
+      canAdmin() { return this.userRole === ROLES.ADMIN; },
+
+      roleLabel(role) { return ROLES.label(role); },
+      badgeLabel(count) { return count > 99 ? '99+' : count; },
+      roleBadgeClass(role) { return ROLES.badgeClass(role); },
+      roleBadgeLabel(role) { return ROLES.badgeLabel(role); },
+
+      get usersFiltered() {
+        return ListUtils.filter(this.users, this.userSearch, ['email'], this.userRoleFilter, 'role');
+      },
+      get usersTotalPages() {
+        return ListUtils.totalPages(this.usersFiltered.length, this.usersPerPage);
+      },
+      get usersPaged() {
+        return ListUtils.paged(this.usersFiltered, this.usersPage, this.usersPerPage);
+      },
+    };
+  }
+
+  function lucideIcon(name, size = 18) {
+    return `<i data-lucide="${name}" style="width:${size}px;height:${size}px;display:block;"></i>`;
+  }
+
+  const Sidebar = {
+    el: null, overlay: null,
+    toggleBtn: null, mobileBtn: null, mobileCloseBtn: null,
+    _expanded: true,
+
+    init() {
+      this.el             = document.getElementById('sidebar');
+      this.overlay        = document.getElementById('mobile-overlay');
+      this.toggleBtn      = document.getElementById('sidebar-toggle');
+      this.mobileBtn      = document.getElementById('mobile-menu-btn');
+      this.mobileCloseBtn = document.getElementById('mobile-close-btn');
+
+      const saved    = localStorage.getItem('app_sidebar_expanded');
+      this._expanded = saved === null ? true : saved === 'true';
+
+      if (window.innerWidth >= 768) this._applyDesktop(this._expanded, false);
+
+      this.toggleBtn?.addEventListener('click', () => {
+        this._expanded = !this._expanded;
+        localStorage.setItem('app_sidebar_expanded', this._expanded);
+        this._applyDesktop(this._expanded, true);
+      });
+
+      this.mobileBtn?.addEventListener('click',      () => this._setMobileOpen(true));
+      this.mobileCloseBtn?.addEventListener('click', () => this._setMobileOpen(false));
+      this.overlay?.addEventListener('click',        () => this._setMobileOpen(false));
+
+      window.addEventListener('resize', () => {
+        if (window.innerWidth >= 768) {
+          this._setMobileOpen(false);
+          this._applyDesktop(this._expanded, false);
+        } else {
+          this.el.classList.remove('sidebar-collapsed', 'sidebar-expanded');
+        }
+      });
+
+      window.addEventListener('app:navigate', () => this._setMobileOpen(false));
+
+      requestAnimationFrame(() => requestAnimationFrame(() => this._initTippy()));
+    },
+
+    _applyDesktop(expanded, animate) {
+      if (window.innerWidth < 768) return;
+
+      if (!animate) {
+        this.el.style.transition = 'none';
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          this.el.style.transition = '';
+        }));
+      }
+
+      const texts = this.el.querySelectorAll('.sidebar-text');
+
+      if (expanded) {
+        this.el.classList.remove('sidebar-collapsed');
+        this.el.classList.add('sidebar-expanded');
+        texts.forEach(t => t.classList.remove('sidebar-text-hidden'));
+        if (this.toggleBtn) this.toggleBtn.title = 'Recolher menu';
+      } else {
+        this.el.classList.add('sidebar-collapsed');
+        this.el.classList.remove('sidebar-expanded');
+        texts.forEach(t => t.classList.add('sidebar-text-hidden'));
+        if (this.toggleBtn) this.toggleBtn.title = 'Expandir menu';
+      }
+
+      this._updateTippy(expanded);
+    },
+
+    _initTippy() {
+      const instances = tippy(this.el.querySelectorAll('.nav-item'), {
+        content:   (el) => el.dataset.tippyLabel || '',
+        placement: 'right',
+        theme:     'sidebar',
+        onShow:    () => this.el.classList.contains('sidebar-collapsed'),
+      });
+      this._tippyInstances = [].concat(instances);
+    },
+
+    _updateTippy(expanded) {
+      if (!this._tippyInstances?.length) return;
+      this._tippyInstances.forEach(instance => {
+        expanded ? instance.disable() : instance.enable();
+      });
+    },
+
+    _setMobileOpen(open) {
+      if (!this.el || !this.overlay) return;
+      if (open) {
+        this.el.classList.add('mobile-open');
+        this.overlay.classList.remove('hidden');
+        setTimeout(() => this.overlay.classList.remove('opacity-0'), 10);
+      } else {
+        this.el.classList.remove('mobile-open');
+        this.overlay.classList.add('opacity-0');
+        setTimeout(() => this.overlay.classList.add('hidden'), 300);
+      }
+    },
+  };
+
+  const Loading = {
+    _overlay: null,
+    _message: null,
+
+    _getElements() {
+      if (!this._overlay) this._overlay = document.getElementById('loading-overlay');
+      if (!this._message) this._message = document.getElementById('loading-message');
+    },
+
+    show(message = 'Aguarde...') {
+      this._getElements();
+      this._message.textContent = message;
+      this._overlay.classList.add('active');
+    },
+
+    hide() {
+      this._getElements();
+      this._overlay.classList.remove('active');
+    },
+  };
+
+  const Toast = {
+    _container: null,
+
+    _getContainer() {
+      if (!this._container) this._container = document.getElementById('toast-container');
+      return this._container;
+    },
+
+    _sanitize(str) {
+      const div = document.createElement('div');
+      div.textContent = String(str);
+      return div.innerHTML;
+    },
+
+    show(message, type = 'info', duration = 4000) {
+      const icons = {
+        success: 'check-circle',
+        error:   'x-circle',
+        warning: 'alert-triangle',
+        info:    'info',
+      };
+
+      const t   = ['success','error','warning','info'].includes(type) ? type : 'info';
+      const pfx = `--toast-${t}`;
+      const cs  = getComputedStyle(document.documentElement);
+      const c   = {
+        bg:        cs.getPropertyValue(`${pfx}-bg`).trim(),
+        border:    cs.getPropertyValue(`${pfx}-border`).trim(),
+        iconColor: cs.getPropertyValue(`${pfx}-icon`).trim(),
+        bar:       cs.getPropertyValue(`${pfx}-border`).trim(),
+        icon:      icons[t],
+      };
+      const id = `toast-${Date.now()}`;
+      const el = document.createElement('div');
+
+      el.id        = id;
+      el.className = 'toast-item toast-enter';
+      el.style.cssText = `background:${c.bg}; border:1px solid ${c.border};`;
+      const safeMessage = this._sanitize(message);
+      el.innerHTML = `
+        <div style="padding:0.875rem 1rem; display:flex; align-items:flex-start; gap:0.625rem;">
+          <i data-lucide="${c.icon}" style="width:18px;height:18px;color:${c.iconColor};flex-shrink:0;margin-top:1px;"></i>
+          <p style="font-size:0.875rem;color:#2D3748;flex:1;margin:0;">${safeMessage}</p>
+          <button class="toast-close">
+            <i data-lucide="x" style="width:14px;height:14px;color:#718096;"></i>
+          </button>
+        </div>
+        <div class="toast-progress-track">
+          <div class="toast-progress-bar running" style="background:${c.bar};--toast-duration:${duration}ms;"></div>
+        </div>`;
+
+      el.querySelector('.toast-close').addEventListener('click', () => this._dismiss(id));
+
+      this._getContainer().appendChild(el);
+      lucide.createIcons({ nodes: el.querySelectorAll('[data-lucide]') });
+
+      const bar = el.querySelector('.toast-progress-bar');
+
+      let remaining = duration;
+      let startedAt = Date.now();
+      let timer     = setTimeout(() => this._dismiss(id), remaining);
+
+      el.addEventListener('mouseenter', () => {
+        clearTimeout(timer);
+        remaining -= Date.now() - startedAt;
+        bar?.classList.add('paused');
+      });
+
+      el.addEventListener('mouseleave', () => {
+        startedAt = Date.now();
+        timer = setTimeout(() => this._dismiss(id), remaining);
+        bar?.classList.remove('paused');
+      });
+    },
+
+    _dismiss(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.remove('toast-enter');
+      el.classList.add('toast-exit');
+      setTimeout(() => el.remove(), 280);
+    },
+
+    success: (msg, ms) => Toast.show(msg, 'success', ms),
+    error:   (msg, ms) => Toast.show(msg, 'error',   ms),
+    warning: (msg, ms) => Toast.show(msg, 'warning', ms),
+    info:    (msg, ms) => Toast.show(msg, 'info',    ms),
+  };
+</script>

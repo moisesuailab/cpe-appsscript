@@ -1,0 +1,61 @@
+<!-- ════ MODAIS: USUÁRIOS ════ -->
+
+<!-- Adicionar Usuário -->
+  <template x-if="modal.contentKey === 'addUser'">
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">E-mail</label>
+        <input type="email"
+              x-model="newUser.email"
+              placeholder="email@empresa.com"
+              @keydown.enter="modal.onConfirm && modal.onConfirm()"
+              class="form-input w-full" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Perfil</label>
+        <select x-model="newUser.role" class="select-input w-full">
+          <option value="viewer">Visualizador</option>
+          <option value="editor">Editor</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+    </div>
+  </template>
+
+  <!-- Visualizar Usuário -->
+  <template x-if="modal.contentKey === 'viewUser'">
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs font-medium text-text-muted mb-1.5">E-mail</label>
+        <div class="form-input w-full bg-bg-medium text-text-muted cursor-default select-all"
+            x-text="editingUser.email"></div>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-text-muted mb-1.5">Perfil</label>
+        <div class="flex items-center gap-2 mt-1">
+          <span class="badge text-sm px-3 py-1"
+                :class="roleBadgeClass(editingUser.role)"
+                x-text="roleBadgeLabel(editingUser.role)"></span>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- Editar Usuário -->
+  <template x-if="modal.contentKey === 'editUser'">
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs font-medium text-text-muted mb-1.5">E-mail</label>
+        <div class="form-input w-full bg-bg-medium text-text-muted cursor-default select-all"
+            x-text="editingUser.email"></div>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-text-muted mb-1.5">Perfil</label>
+        <select x-model="editingUser.role" class="select-input w-full">
+          <option value="viewer">Visualizador</option>
+          <option value="editor">Editor</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+    </div>
+  </template>
