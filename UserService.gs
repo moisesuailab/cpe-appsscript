@@ -32,6 +32,7 @@ const UserService = {
       if (roles[email.toLowerCase()]) throw new Error(`Usuário '${email}' já está cadastrado.`);
       roles[email.toLowerCase()] = role;
       this._save(roles);
+      AppLogService.append('CREATE_USER', 'users', email.toLowerCase(), `Usuário '${email}' adicionado com role '${role}'.`);
       CONFIG.clearRolesCache();
       return Utils.createResponse('success', null, 'Usuário adicionado com sucesso.');
     } catch (error) {
@@ -50,6 +51,7 @@ const UserService = {
       if (!roles[email.toLowerCase()]) throw new Error(`Usuário '${email}' não encontrado.`);
       roles[email.toLowerCase()] = role;
       this._save(roles);
+      AppLogService.append('UPDATE_USER_ROLE', 'users', email.toLowerCase(), `Role de '${email}' atualizado para '${role}'.`);
       CONFIG.clearRolesCache();
       return Utils.createResponse('success', null, 'Perfil atualizado com sucesso.');
     } catch (error) {
@@ -64,6 +66,7 @@ const UserService = {
       if (!roles[email.toLowerCase()]) throw new Error(`Usuário '${email}' não encontrado.`);
       delete roles[email.toLowerCase()];
       this._save(roles);
+      AppLogService.append('DELETE_USER', 'users', email.toLowerCase(), `Usuário '${email}' removido.`);
       CONFIG.clearRolesCache();
       return Utils.createResponse('success', null, 'Usuário removido com sucesso.');
     } catch (error) {
