@@ -32,4 +32,12 @@ const CONFIG = {
   },
 
   ID_COLUMN: 'id',
+
+  SHEETS: {
+    LOGS: 'logs',
+  },
+
+  COLUMNS: {
+    logs: ['id', 'timestamp', 'userEmail', 'userName', 'action', 'entity', 'entityId', 'description'],
+  },
 };

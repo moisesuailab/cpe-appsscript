@@ -1,1 +1,10 @@
+# Ignora arquivos gerados para o codemerge-cli
+codemerge.json
 merged-output.txt
+appsscript.txt
+
+# Ignora todos os arquivos .md
+*.md
+
+# Exclui o README.md da regra de ignorar
+!README.md

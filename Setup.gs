@@ -4,6 +4,21 @@ const Setup = {
     spreadsheetId: '1v4LJt-vOegSUnYAHZpK7NjasT4qokxou4i4uNoaWq9M',
   },
 
+  _ensureSheet(spreadsheet, sheetName, headers) {
+    let sheet = spreadsheet.getSheetByName(sheetName);
+    if (!sheet) {
+      sheet = spreadsheet.insertSheet(sheetName);
+      console.log('[OK] Aba "' + sheetName + '" criada.');
+    }
+    const firstCell = sheet.getRange(1, 1);
+    if (!firstCell.getValue()) {
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      console.log('[OK] Cabecalho da aba "' + sheetName + '" definido.');
+    } else {
+      console.log('[OK] Aba "' + sheetName + '" ja existe com cabecalho.');
+    }
+  },
+
   _validateConfig() {
     const { spreadsheetId } = this._CONFIG;
     const errors = [];
@@ -45,11 +60,20 @@ const Setup = {
       errors.push('Falha ao salvar SPREADSHEET_ID: ' + e.message);
     }
 
+    let spreadsheet = null;
     try {
-      SpreadsheetApp.openById(spreadsheetId);
+      spreadsheet = SpreadsheetApp.openById(spreadsheetId);
       console.log('[OK] Acesso a planilha confirmado.');
     } catch (e) {
       errors.push('Nao foi possivel acessar a planilha. Verifique o ID e as permissoes de compartilhamento: ' + e.message);
+    }
+
+    if (spreadsheet) {
+      try {
+        this._ensureSheet(spreadsheet, CONFIG.SHEETS.LOGS, CONFIG.COLUMNS.logs);
+      } catch (e) {
+        errors.push('Falha ao criar aba logs: ' + e.message);
+      }
     }
 
     try {
@@ -158,6 +182,19 @@ const Setup = {
       label: 'USER_ROLES valido (JSON)',
       ok: rolesOk,
       detail: rolesOk ? 'OK' : 'Valor corrompido — execute setupReset() e depois setupInit()',
+    });
+
+    let logsSheetOk = false;
+    if (spreadsheetId && sheetAccessOk) {
+      try {
+        const ss = SpreadsheetApp.openById(spreadsheetId);
+        logsSheetOk = !!ss.getSheetByName(CONFIG.SHEETS.LOGS);
+      } catch (_) { }
+    }
+    checks.push({
+      label: 'Aba "' + CONFIG.SHEETS.LOGS + '" existe',
+      ok: logsSheetOk,
+      detail: logsSheetOk ? 'OK' : 'Nao encontrada — execute setupInit() para cria-la',
     });
 
     const allPassed = checks.every(c => c.ok);
