@@ -1,0 +1,78 @@
+<div class="main-content" x-show="currentView === 'configuracoes'" x-cloak>
+  <div class="space-y-5">
+
+    <!-- Cabeçalho -->
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <p x-show="configuracaoUltimaConsulta" class="text-xs text-text-muted flex items-center gap-1.5">
+          <i data-lucide="clock" class="w-3 h-3"></i>
+          Atualizado em: <span x-text="configuracaoUltimaConsulta"></span>
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+        <button class="btn-outline flex-1 sm:flex-none justify-center" @click="loadConfiguracao()">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          Atualizar
+        </button>
+      </div>
+    </div>
+
+    <!-- Setor encontrado -->
+    <template x-if="configuracaoLoaded && setorCPE">
+      <div class="flex justify-center">
+      <div class="card p-5 w-full max-w-md">
+
+        <div class="flex items-center justify-between mb-4">
+          <p class="text-sm font-semibold text-text-main" x-text="'Gerente ' + setorCPE.sigla"></p>
+        </div>
+
+        <hr class="border-border mb-4" />
+
+        <template x-if="gerenteCPE">
+          <div>
+            <p class="text-xs text-text-muted mb-1">Nome</p>
+            <p class="text-base font-semibold text-text-main" x-text="gerenteCPE.nome"></p>
+            <p class="text-sm text-text-muted mt-0.5" x-text="gerenteCPE.matricula"></p>
+            <p class="text-xs text-text-muted mt-1"
+               x-text="'Editado em: ' + (gerenteCPE.atualizado_em ? new Date(gerenteCPE.atualizado_em).toLocaleDateString('pt-BR') : '—')">
+            </p>
+
+            <template x-if="canEdit()">
+              <button class="btn-outline mt-4 flex items-center gap-2" @click="openEditGerente()">
+                <i data-lucide="pencil" class="w-4 h-4"></i>
+                Editar
+              </button>
+            </template>
+          </div>
+        </template>
+
+        <template x-if="!gerenteCPE">
+          <div class="py-8 text-center">
+            <div class="w-10 h-10 rounded-2xl bg-bg-medium flex items-center justify-center mx-auto mb-3">
+              <i data-lucide="user-x" class="w-5 h-5 text-text-muted"></i>
+            </div>
+            <p class="text-sm text-text-muted" x-text="'Nenhum gestor cadastrado para o setor ' + setorCPE.sigla + '.'"></p>
+          </div>
+        </template>
+
+      </div>
+      </div>
+    </template>
+
+    <!-- Setor CPE não encontrado na planilha -->
+    <template x-if="configuracaoLoaded && !setorCPE">
+      <div class="flex justify-center">
+      <div class="card p-5 w-full max-w-md">
+        <div class="py-8 text-center">
+          <div class="w-10 h-10 rounded-2xl bg-bg-medium flex items-center justify-center mx-auto mb-3">
+            <i data-lucide="alert-triangle" class="w-5 h-5 text-warning"></i>
+          </div>
+          <p class="text-sm font-semibold text-text-main mb-1">Setor não encontrado</p>
+          <p class="text-xs text-text-muted">O setor CPE não foi encontrado na planilha. Execute o Setup para corrigir.</p>
+        </div>
+      </div>
+      </div>
+    </template>
+
+  </div>
+</div>

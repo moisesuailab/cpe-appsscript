@@ -620,6 +620,64 @@
     };
   }
 
+  function configuracaoModule() {
+    return {
+      gerenteCPE:                 null,
+      setorCPE:                   null,
+      configuracaoLoaded:         false,
+      configuracaoUltimaConsulta: null,
+      editGerente:                { nome: '', matricula: '' },
+
+      initConfiguracao() {
+        window.addEventListener('app:navigate', (e) => {
+          if (e.detail.viewId === 'configuracoes' && !this.configuracaoLoaded) this.loadConfiguracao();
+        });
+      },
+
+      loadConfiguracao() {
+        Loading.show('Carregando configurações...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              const c = res.data.collections;
+              this.setorCPE   = (c.setores || []).find(s => s.sigla === 'CPE') || null;
+              this.gerenteCPE = this.setorCPE
+                ? (c.gestores_setor || []).find(g => String(g.id_setor) === String(this.setorCPE.id)) || null
+                : null;
+              this.configuracaoLoaded         = true;
+              this.configuracaoUltimaConsulta = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+            } else Toast.error(res.message);
+            this.$nextTick(() => lucide.createIcons());
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .getAppData(['setores', 'gestores_setor']);
+      },
+
+      openEditGerente() {
+        this.editGerente = { nome: this.gerenteCPE?.nome || '', matricula: this.gerenteCPE?.matricula || '' };
+        const sigla = this.setorCPE?.sigla || 'CPE';
+        this.openModal({ title: `Editar Gerente ${sigla}`, size: 'sm', contentKey: 'editGerenteCPE', confirmLabel: 'Salvar', onConfirm: () => this.saveEditGerente() });
+      },
+
+      saveEditGerente() {
+        Loading.show('Salvando...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              this.gerenteCPE = { ...this.gerenteCPE, ...res.data };
+              this.closeModal();
+              Toast.success('Gerente CPE atualizado com sucesso.');
+              this.$nextTick(() => lucide.createIcons());
+            } else Toast.error(res.message);
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .gestorSetorUpdate(this.gerenteCPE.id, this.editGerente);
+      },
+    };
+  }
+
   function modalModule() {
     return {
       modal: {
@@ -666,11 +724,12 @@
       navItems:    [],
 
       pageConfig: {
-        dashboard:   { title: 'Dashboard',   subtitle: 'Visão geral da aplicação' },
-        composicao:  { title: 'Composição',  subtitle: 'Gerencie grupos, órgãos, cargos e ocupações' },
-        magistrados: { title: 'Magistrados', subtitle: 'Gerencie o cadastro de magistrados' },
-        alertas:     { title: 'Alertas',     subtitle: 'Notificações e avisos pendentes' },
-        usuarios:    { title: 'Usuários',    subtitle: 'Gerencie os acessos e permissões da aplicação' },
+        dashboard:      { title: 'Dashboard',      subtitle: 'Visão geral da aplicação' },
+        composicao:     { title: 'Composição',     subtitle: 'Gerencie grupos, órgãos, cargos e ocupações' },
+        magistrados:    { title: 'Magistrados',    subtitle: 'Gerencie o cadastro de magistrados' },
+        alertas:        { title: 'Alertas',        subtitle: 'Notificações e avisos pendentes' },
+        usuarios:       { title: 'Usuários',       subtitle: 'Gerencie os acessos e permissões da aplicação' },
+        configuracoes:  { title: 'Configurações',  subtitle: 'Configurações do sistema' },
       },
 
       navigate(viewId) {
@@ -682,8 +741,9 @@
         const items = [
           { id: 'dashboard',   label: 'Dashboard',   icon: lucideIcon('layout-dashboard'), badge: null },
           { id: 'composicao',  label: 'Composição',  icon: lucideIcon('network'),          badge: null },
-          { id: 'magistrados', label: 'Magistrados', icon: lucideIcon('scale'),            badge: null },
-          { id: 'alertas',     label: 'Alertas',     icon: lucideIcon('bell'), badge: this.badgeLabel(this.alertasCount) },
+          { id: 'magistrados',   label: 'Magistrados',  icon: lucideIcon('scale'),    badge: null },
+          { id: 'alertas',       label: 'Alertas',      icon: lucideIcon('bell'),  badge: this.badgeLabel(this.alertasCount) },
+          { id: 'configuracoes', label: 'Configurações', icon: lucideIcon('settings'), badge: null },
         ];
         if (this.userRole === ROLES.ADMIN) {
           items.push({ id: 'usuarios', label: 'Usuários', icon: lucideIcon('users'), badge: null });
@@ -700,6 +760,7 @@
     return {
       ...composicaoModule(),
       ...magistradosModule(),
+      ...configuracaoModule(),
       ...usersModule(),
       ...modalModule(),
       ...navigationModule(),
@@ -714,6 +775,7 @@
         this.initUsers();
         this.initComposicao();
         this.initMagistrados();
+        this.initConfiguracao();
         this.$nextTick(() => {
           lucide.createIcons();
           Sidebar.init();

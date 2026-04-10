@@ -104,3 +104,8 @@ function ocupacaoRemover(id)   { _requireRole('editor'); return OcupacaoService.
 function magistradoCreate(data)     { _requireRole('editor'); return MagistradoService.create(data); }
 function magistradoUpdate(id, data) { _requireRole('editor'); return MagistradoService.update(id, data); }
 function magistradoDelete(id)       { _requireRole('editor'); return MagistradoService.delete(id); }
+
+// Setores e Gestores
+function setorGetAll()                   { _requireAccess();       return SetorService.findAll(); }
+function gestorSetorGetBySetor(id_setor) { _requireAccess();       return GestorSetorService.getBySetor(id_setor); }
+function gestorSetorUpdate(id, data)     { _requireRole('editor'); return GestorSetorService.update(id, data); }

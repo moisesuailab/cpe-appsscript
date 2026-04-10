@@ -163,6 +163,26 @@
     </div>
   </template>
 
+<!-- ════ MODAIS: CONFIGURAÇÕES ════ -->
+
+<!-- Editar Gerente CPE -->
+  <template x-if="modal.contentKey === 'editGerenteCPE'">
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Nome do Gerente CPE <span class="text-danger">*</span></label>
+        <input type="text" x-model="editGerente.nome" placeholder="Nome completo"
+               @keydown.enter="modal.onConfirm && modal.onConfirm()"
+               class="form-input w-full" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Matrícula <span class="text-danger">*</span></label>
+        <input type="text" x-model="editGerente.matricula" placeholder="Matrícula"
+               @keydown.enter="modal.onConfirm && modal.onConfirm()"
+               class="form-input w-full" />
+      </div>
+    </div>
+  </template>
+
 <!-- ════ MODAIS: USUÁRIOS ════ -->
 
 <!-- Adicionar Usuário -->

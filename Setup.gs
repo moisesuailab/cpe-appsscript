@@ -13,6 +13,7 @@ const Setup = {
     const firstCell = sheet.getRange(1, 1);
     if (!firstCell.getValue()) {
       sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      SpreadsheetApp.flush();
       console.log('[OK] Cabecalho da aba "' + sheetName + '" definido.');
     } else {
       console.log('[OK] Aba "' + sheetName + '" ja existe com cabecalho.');
@@ -39,6 +40,37 @@ const Setup = {
     }
 
     return true;
+  },
+
+  _seedCPE() {
+    const setores = CrudRepository.findAll(CONFIG.SHEETS.SETORES);
+    let setorCPE  = setores.find(s => s.sigla === 'CPE');
+
+    if (!setorCPE) {
+      const result = CrudRepository.create(CONFIG.SHEETS.SETORES, {
+        nome:  'Central de Processo Eletrônico',
+        sigla: 'CPE',
+      });
+      setorCPE = result.data;
+      console.log('[OK] Setor CPE criado (id: ' + setorCPE.id + ').');
+    } else {
+      console.log('[OK] Setor CPE ja existe (id: ' + setorCPE.id + ').');
+    }
+
+    const gestores = CrudRepository.findAll(CONFIG.SHEETS.GESTORES_SETOR);
+    const gestorExiste = gestores.some(g => String(g.id_setor) === String(setorCPE.id));
+
+    if (!gestorExiste) {
+      CrudRepository.create(CONFIG.SHEETS.GESTORES_SETOR, {
+        id_setor:     setorCPE.id,
+        nome:         'Evelyne Maia de Holanda',
+        matricula:    'T0090951',
+        atualizado_em: new Date(),
+      });
+      console.log('[OK] Gestora do setor CPE criada.');
+    } else {
+      console.log('[OK] Gestora do setor CPE ja existe.');
+    }
   },
 
   init() {
@@ -70,12 +102,14 @@ const Setup = {
 
     if (spreadsheet) {
       const sheets = [
-        { name: CONFIG.SHEETS.LOGS,        columns: CONFIG.COLUMNS.logs        },
-        { name: CONFIG.SHEETS.GRUPOS,      columns: CONFIG.COLUMNS.grupos      },
-        { name: CONFIG.SHEETS.ORGAOS,      columns: CONFIG.COLUMNS.orgaos      },
-        { name: CONFIG.SHEETS.CARGOS,      columns: CONFIG.COLUMNS.cargos      },
-        { name: CONFIG.SHEETS.OCUPACOES,   columns: CONFIG.COLUMNS.ocupacoes   },
-        { name: CONFIG.SHEETS.MAGISTRADOS, columns: CONFIG.COLUMNS.magistrados },
+        { name: CONFIG.SHEETS.LOGS,            columns: CONFIG.COLUMNS.logs            },
+        { name: CONFIG.SHEETS.GRUPOS,          columns: CONFIG.COLUMNS.grupos          },
+        { name: CONFIG.SHEETS.ORGAOS,          columns: CONFIG.COLUMNS.orgaos          },
+        { name: CONFIG.SHEETS.CARGOS,          columns: CONFIG.COLUMNS.cargos          },
+        { name: CONFIG.SHEETS.OCUPACOES,       columns: CONFIG.COLUMNS.ocupacoes       },
+        { name: CONFIG.SHEETS.MAGISTRADOS,     columns: CONFIG.COLUMNS.magistrados     },
+        { name: CONFIG.SHEETS.SETORES,         columns: CONFIG.COLUMNS.setores         },
+        { name: CONFIG.SHEETS.GESTORES_SETOR,  columns: CONFIG.COLUMNS.gestores_setor  },
       ];
       sheets.forEach(({ name, columns }) => {
         try {
@@ -84,6 +118,12 @@ const Setup = {
           errors.push('Falha ao criar aba ' + name + ': ' + e.message);
         }
       });
+
+      try {
+        this._seedCPE();
+      } catch (e) {
+        errors.push('Falha ao realizar seed CPE: ' + e.message);
+      }
     }
 
     try {
@@ -201,6 +241,8 @@ const Setup = {
       CONFIG.SHEETS.CARGOS,
       CONFIG.SHEETS.OCUPACOES,
       CONFIG.SHEETS.MAGISTRADOS,
+      CONFIG.SHEETS.SETORES,
+      CONFIG.SHEETS.GESTORES_SETOR,
     ];
     if (spreadsheetId && sheetAccessOk) {
       try {
