@@ -165,6 +165,461 @@
     };
   }
 
+  function composicaoModule() {
+    return {
+      grupos:    [],
+      orgaos:    [],
+      cargos:    [],
+      ocupacoes: [],
+      magistrados: [],
+      composicaoLoaded:         false,
+      composicaoUltimaConsulta: null,
+      composicaoPanelLevel:     1,
+      selectedGrupo: null,
+      selectedOrgao: null,
+      composicaoSearch: '',
+
+      novoGrupo:            { nome: '', descricao: '' },
+      editGrupo:            { id: '', nome: '', descricao: '' },
+      novoOrgao:            { nome: '' },
+      editOrgao:            { id: '', nome: '' },
+      novoCargo:            { nome: '', tipo: 'titular' },
+      editCargo:            { id: '', nome: '', tipo: '' },
+      novaOcupacao: { id_cargo: '', id_magistrado: '' },
+
+      initComposicao() {
+        this.$watch('composicaoSearch', () => { this.$nextTick(() => lucide.createIcons()); });
+        window.addEventListener('app:navigate', (e) => {
+          if (e.detail.viewId === 'composicao' && !this.composicaoLoaded) this.loadComposicao();
+        });
+      },
+
+      loadComposicao() {
+        Loading.show('Carregando composição...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              const c = res.data.collections;
+              this.grupos      = c.grupos      || [];
+              this.orgaos      = c.orgaos      || [];
+              this.cargos      = c.cargos      || [];
+              this.ocupacoes   = c.ocupacoes   || [];
+              this.magistrados = c.magistrados || [];
+              this.composicaoLoaded         = true;
+              this.composicaoUltimaConsulta = this._agora();
+            } else Toast.error(res.message);
+            this.$nextTick(() => lucide.createIcons());
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .getAppData(['grupos', 'orgaos', 'cargos', 'ocupacoes', 'magistrados']);
+      },
+
+      selectGrupo(grupo) {
+        this.selectedGrupo = grupo;
+        this.selectedOrgao = null;
+        if (window.innerWidth < 768) this.composicaoPanelLevel = 2;
+        this.$nextTick(() => lucide.createIcons());
+      },
+
+      selectOrgao(orgao) {
+        this.selectedOrgao = orgao;
+        if (window.innerWidth < 768) this.composicaoPanelLevel = 3;
+        this.$nextTick(() => lucide.createIcons());
+      },
+
+      // --- Grupo ---
+
+      openAddGrupo() {
+        this.novoGrupo = { nome: '', descricao: '' };
+        this.openModal({ title: 'Novo Grupo', size: 'sm', contentKey: 'addGrupo', confirmLabel: 'Criar', onConfirm: () => this.saveAddGrupo() });
+      },
+
+      saveAddGrupo() {
+        Loading.show('Salvando grupo...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              this.grupos.push(res.data);
+              this.closeModal();
+              Toast.success('Grupo criado com sucesso.');
+              this.$nextTick(() => lucide.createIcons());
+            } else Toast.error(res.message);
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .grupoCreate(this.novoGrupo);
+      },
+
+      openEditGrupo(grupo) {
+        this.editGrupo = { ...grupo };
+        this.openModal({ title: 'Editar Grupo', size: 'sm', contentKey: 'editGrupo', confirmLabel: 'Salvar', onConfirm: () => this.saveEditGrupo() });
+      },
+
+      saveEditGrupo() {
+        Loading.show('Salvando grupo...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              const idx = this.grupos.findIndex(g => g.id === this.editGrupo.id);
+              if (idx !== -1) this.grupos[idx] = res.data;
+              if (this.selectedGrupo?.id === this.editGrupo.id) this.selectedGrupo = res.data;
+              this.closeModal();
+              Toast.success('Grupo atualizado com sucesso.');
+              this.$nextTick(() => lucide.createIcons());
+            } else Toast.error(res.message);
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .grupoUpdate(this.editGrupo.id, this.editGrupo);
+      },
+
+      deleteGrupo(grupo) {
+        this.showConfirm({
+          message: 'Excluir grupo?',
+          detail: `O grupo '${grupo.nome}' será removido permanentemente.`,
+          confirmLabel: 'Excluir',
+          variant: 'danger',
+          onConfirm: () => {
+            Loading.show('Excluindo grupo...');
+            google.script.run
+              .withSuccessHandler((res) => {
+                Loading.hide();
+                if (res.status === 'success') {
+                  this.grupos = this.grupos.filter(g => g.id !== grupo.id);
+                  if (this.selectedGrupo?.id === grupo.id) { this.selectedGrupo = null; this.selectedOrgao = null; }
+                  Toast.success('Grupo excluído com sucesso.');
+                  this.$nextTick(() => lucide.createIcons());
+                } else Toast.error(res.message);
+              })
+              .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+              .grupoDelete(grupo.id);
+          },
+        });
+      },
+
+      // --- Órgão ---
+
+      openAddOrgao() {
+        this.novoOrgao = { nome: '' };
+        this.openModal({ title: 'Novo Órgão', size: 'sm', contentKey: 'addOrgao', confirmLabel: 'Criar', onConfirm: () => this.saveAddOrgao() });
+      },
+
+      saveAddOrgao() {
+        Loading.show('Salvando órgão...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              this.orgaos.push(res.data);
+              this.closeModal();
+              Toast.success('Órgão criado com sucesso.');
+              this.$nextTick(() => lucide.createIcons());
+            } else Toast.error(res.message);
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .orgaoCreate({ ...this.novoOrgao, id_grupo: this.selectedGrupo.id });
+      },
+
+      openEditOrgao(orgao) {
+        this.editOrgao = { ...orgao };
+        this.openModal({ title: 'Editar Órgão', size: 'sm', contentKey: 'editOrgao', confirmLabel: 'Salvar', onConfirm: () => this.saveEditOrgao() });
+      },
+
+      saveEditOrgao() {
+        Loading.show('Salvando órgão...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              const idx = this.orgaos.findIndex(o => o.id === this.editOrgao.id);
+              if (idx !== -1) this.orgaos[idx] = res.data;
+              if (this.selectedOrgao?.id === this.editOrgao.id) this.selectedOrgao = res.data;
+              this.closeModal();
+              Toast.success('Órgão atualizado com sucesso.');
+              this.$nextTick(() => lucide.createIcons());
+            } else Toast.error(res.message);
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .orgaoUpdate(this.editOrgao.id, this.editOrgao);
+      },
+
+      deleteOrgao(orgao) {
+        this.showConfirm({
+          message: 'Excluir órgão?',
+          detail: `O órgão '${orgao.nome}' será removido permanentemente.`,
+          confirmLabel: 'Excluir',
+          variant: 'danger',
+          onConfirm: () => {
+            Loading.show('Excluindo órgão...');
+            google.script.run
+              .withSuccessHandler((res) => {
+                Loading.hide();
+                if (res.status === 'success') {
+                  this.orgaos = this.orgaos.filter(o => o.id !== orgao.id);
+                  if (this.selectedOrgao?.id === orgao.id) this.selectedOrgao = null;
+                  Toast.success('Órgão excluído com sucesso.');
+                  this.$nextTick(() => lucide.createIcons());
+                } else Toast.error(res.message);
+              })
+              .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+              .orgaoDelete(orgao.id);
+          },
+        });
+      },
+
+      // --- Cargo ---
+
+      openAddCargo() {
+        this.novoCargo = { nome: '', tipo: 'titular' };
+        this.openModal({ title: 'Novo Cargo', size: 'sm', contentKey: 'addCargo', confirmLabel: 'Criar', onConfirm: () => this.saveAddCargo() });
+      },
+
+      saveAddCargo() {
+        Loading.show('Salvando cargo...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              this.cargos.push(res.data);
+              this.closeModal();
+              Toast.success('Cargo criado com sucesso.');
+              this.$nextTick(() => lucide.createIcons());
+            } else Toast.error(res.message);
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .cargoCreate({ ...this.novoCargo, id_orgao: this.selectedOrgao.id });
+      },
+
+      openEditCargo(cargo) {
+        this.editCargo = { ...cargo };
+        this.openModal({ title: 'Editar Cargo', size: 'sm', contentKey: 'editCargo', confirmLabel: 'Salvar', onConfirm: () => this.saveEditCargo() });
+      },
+
+      saveEditCargo() {
+        Loading.show('Salvando cargo...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              const idx = this.cargos.findIndex(c => c.id === this.editCargo.id);
+              if (idx !== -1) this.cargos[idx] = res.data;
+              this.closeModal();
+              Toast.success('Cargo atualizado com sucesso.');
+              this.$nextTick(() => lucide.createIcons());
+            } else Toast.error(res.message);
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .cargoUpdate(this.editCargo.id, this.editCargo);
+      },
+
+      deleteCargo(cargo) {
+        this.showConfirm({
+          message: 'Excluir cargo?',
+          detail: `O cargo '${cargo.nome}' será removido permanentemente.`,
+          confirmLabel: 'Excluir',
+          variant: 'danger',
+          onConfirm: () => {
+            Loading.show('Excluindo cargo...');
+            google.script.run
+              .withSuccessHandler((res) => {
+                Loading.hide();
+                if (res.status === 'success') {
+                  this.cargos = this.cargos.filter(c => c.id !== cargo.id);
+                  Toast.success('Cargo excluído com sucesso.');
+                  this.$nextTick(() => lucide.createIcons());
+                } else Toast.error(res.message);
+              })
+              .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+              .cargoDelete(cargo.id);
+          },
+        });
+      },
+
+      setCargoPresidente(cargo) {
+        Loading.show('Atualizando presidente...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              this.cargos = this.cargos.map(c => ({
+                ...c,
+                is_presidente: c.id_orgao === cargo.id_orgao
+                  ? (c.id === cargo.id ? 'TRUE' : 'FALSE')
+                  : c.is_presidente,
+              }));
+              Toast.success('Presidente atualizado.');
+              this.$nextTick(() => lucide.createIcons());
+            } else Toast.error(res.message);
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .cargoSetPresidente(cargo.id);
+      },
+
+      // --- Ocupação ---
+
+      openVincularMagistrado(cargo) {
+        this.novaOcupacao = { id_cargo: cargo.id, id_magistrado: '' };
+        this.openModal({ title: 'Vincular Magistrado', size: 'md', contentKey: 'vincularMagistrado', confirmLabel: 'Vincular', onConfirm: () => this.saveVincularMagistrado() });
+      },
+
+      saveVincularMagistrado() {
+        Loading.show('Vinculando magistrado...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              const idx = this.ocupacoes.findIndex(o => String(o.id_cargo) === String(res.data.id_cargo));
+              if (idx !== -1) this.ocupacoes[idx] = res.data;
+              else this.ocupacoes.push(res.data);
+              this.closeModal();
+              Toast.success('Magistrado vinculado com sucesso.');
+              this.$nextTick(() => lucide.createIcons());
+            } else Toast.error(res.message);
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .ocupacaoCreate({ id_cargo: this.novaOcupacao.id_cargo, id_magistrado: this.novaOcupacao.id_magistrado });
+      },
+
+      removerMagistrado(cargo) {
+        const ocupacao = this.getOcupacaoAtiva(cargo.id);
+        if (!ocupacao) return Toast.warning('Nenhuma ocupação encontrada para este cargo.');
+        this.showConfirm({
+          message: 'Remover magistrado do cargo?',
+          detail: `${this.getMagistradoNome(ocupacao.id_magistrado)} será desvinculado de "${cargo.nome}".`,
+          confirmLabel: 'Remover',
+          variant: 'danger',
+          onConfirm: () => {
+            Loading.show('Removendo magistrado...');
+            google.script.run
+              .withSuccessHandler((res) => {
+                Loading.hide();
+                if (res.status === 'success') {
+                  this.ocupacoes = this.ocupacoes.filter(o => o.id !== ocupacao.id);
+                  Toast.success('Magistrado removido com sucesso.');
+                  this.$nextTick(() => lucide.createIcons());
+                } else Toast.error(res.message);
+              })
+              .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+              .ocupacaoRemover(ocupacao.id);
+          },
+        });
+      },
+
+      // --- Helpers ---
+
+      getOcupacaoAtiva(idCargo) {
+        return this.ocupacoes.find(o => String(o.id_cargo) === String(idCargo)) || null;
+      },
+
+      magistradosDisponiveisParaVincular() {
+        if (!this.selectedOrgao) return this.magistrados;
+        const cargosDoOrgao = this.cargos
+          .filter(c => String(c.id_orgao) === String(this.selectedOrgao.id))
+          .map(c => String(c.id));
+        const idsMagistradosOcupados = this.ocupacoes
+          .filter(o => cargosDoOrgao.includes(String(o.id_cargo)))
+          .map(o => String(o.id_magistrado));
+        return this.magistrados.filter(m => !idsMagistradosOcupados.includes(String(m.id)));
+      },
+
+      getMagistradoNome(idMagistrado) {
+        const m = this.magistrados.find(m => String(m.id) === String(idMagistrado));
+        return m ? m.nome : '—';
+      },
+
+      _agora() {
+        return new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+      },
+    };
+  }
+
+  function magistradosModule() {
+    return {
+      magistradoSearch:   '',
+      magistradosPage:    1,
+      magistradosPerPage: 10,
+
+      novoMagistrado: { nome: '', matricula: '', cidade: '' },
+      editMagistrado: { id: '', nome: '', matricula: '', cidade: '' },
+
+      initMagistrados() {
+        this.$watch('magistradoSearch', () => { this.magistradosPage = 1; this.$nextTick(() => lucide.createIcons()); });
+        this.$watch('magistradosPage',  () => { this.$nextTick(() => lucide.createIcons()); });
+
+        window.addEventListener('app:navigate', (e) => {
+          if (e.detail.viewId === 'magistrados' && !this.composicaoLoaded) this.loadComposicao();
+        });
+      },
+
+      openAddMagistrado() {
+        this.novoMagistrado = { nome: '', matricula: '', cidade: '' };
+        this.openModal({ title: 'Novo Magistrado', size: 'sm', contentKey: 'addMagistrado', confirmLabel: 'Criar', onConfirm: () => this.saveAddMagistrado() });
+      },
+
+      saveAddMagistrado() {
+        Loading.show('Salvando magistrado...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              this.magistrados.push(res.data);
+              this.closeModal();
+              Toast.success('Magistrado criado com sucesso.');
+              this.$nextTick(() => lucide.createIcons());
+            } else Toast.error(res.message);
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .magistradoCreate(this.novoMagistrado);
+      },
+
+      openEditMagistrado(magistrado) {
+        this.editMagistrado = { ...magistrado };
+        this.openModal({ title: 'Editar Magistrado', size: 'sm', contentKey: 'editMagistrado', confirmLabel: 'Salvar', onConfirm: () => this.saveEditMagistrado() });
+      },
+
+      saveEditMagistrado() {
+        Loading.show('Salvando magistrado...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              const idx = this.magistrados.findIndex(m => m.id === this.editMagistrado.id);
+              if (idx !== -1) this.magistrados[idx] = res.data;
+              this.closeModal();
+              Toast.success('Magistrado atualizado com sucesso.');
+              this.$nextTick(() => lucide.createIcons());
+            } else Toast.error(res.message);
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .magistradoUpdate(this.editMagistrado.id, this.editMagistrado);
+      },
+
+      deleteMagistrado(magistrado) {
+        this.showConfirm({
+          message: 'Excluir magistrado?',
+          detail: `O magistrado '${magistrado.nome}' será removido permanentemente.`,
+          confirmLabel: 'Excluir',
+          variant: 'danger',
+          onConfirm: () => {
+            Loading.show('Excluindo magistrado...');
+            google.script.run
+              .withSuccessHandler((res) => {
+                Loading.hide();
+                if (res.status === 'success') {
+                  this.magistrados = this.magistrados.filter(m => m.id !== magistrado.id);
+                  Toast.success('Magistrado excluído com sucesso.');
+                  this.$nextTick(() => lucide.createIcons());
+                } else Toast.error(res.message);
+              })
+              .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+              .magistradoDelete(magistrado.id);
+          },
+        });
+      },
+    };
+  }
+
   function modalModule() {
     return {
       modal: {
@@ -211,9 +666,11 @@
       navItems:    [],
 
       pageConfig: {
-        dashboard: { title: 'Dashboard', subtitle: 'Visão geral da aplicação' },
-        alertas:   { title: 'Alertas',   subtitle: 'Notificações e avisos pendentes' },
-        usuarios:  { title: 'Usuários',  subtitle: 'Gerencie os acessos e permissões da aplicação' },
+        dashboard:   { title: 'Dashboard',   subtitle: 'Visão geral da aplicação' },
+        composicao:  { title: 'Composição',  subtitle: 'Gerencie grupos, órgãos, cargos e ocupações' },
+        magistrados: { title: 'Magistrados', subtitle: 'Gerencie o cadastro de magistrados' },
+        alertas:     { title: 'Alertas',     subtitle: 'Notificações e avisos pendentes' },
+        usuarios:    { title: 'Usuários',    subtitle: 'Gerencie os acessos e permissões da aplicação' },
       },
 
       navigate(viewId) {
@@ -223,8 +680,10 @@
 
       _buildNavItems() {
         const items = [
-          { id: 'dashboard', label: 'Dashboard', icon: lucideIcon('layout-dashboard'), badge: null },
-          { id: 'alertas',   label: 'Alertas',   icon: lucideIcon('bell'), badge: this.badgeLabel(this.alertasCount) },
+          { id: 'dashboard',   label: 'Dashboard',   icon: lucideIcon('layout-dashboard'), badge: null },
+          { id: 'composicao',  label: 'Composição',  icon: lucideIcon('network'),          badge: null },
+          { id: 'magistrados', label: 'Magistrados', icon: lucideIcon('scale'),            badge: null },
+          { id: 'alertas',     label: 'Alertas',     icon: lucideIcon('bell'), badge: this.badgeLabel(this.alertasCount) },
         ];
         if (this.userRole === ROLES.ADMIN) {
           items.push({ id: 'usuarios', label: 'Usuários', icon: lucideIcon('users'), badge: null });
@@ -239,6 +698,8 @@
 
   function app() {
     return {
+      ...composicaoModule(),
+      ...magistradosModule(),
       ...usersModule(),
       ...modalModule(),
       ...navigationModule(),
@@ -251,6 +712,8 @@
       init() {
         this._buildNavItems();
         this.initUsers();
+        this.initComposicao();
+        this.initMagistrados();
         this.$nextTick(() => {
           lucide.createIcons();
           Sidebar.init();
@@ -273,6 +736,28 @@
       },
       get usersPaged() {
         return ListUtils.paged(this.usersFiltered, this.usersPage, this.usersPerPage);
+      },
+
+      get gruposFiltrados() {
+        const term = this.composicaoSearch.toLowerCase().trim();
+        return this.grupos.filter(g => !term || g.nome.toLowerCase().includes(term));
+      },
+      get orgaosDoGrupo() {
+        if (!this.selectedGrupo) return [];
+        return this.orgaos.filter(o => String(o.id_grupo) === String(this.selectedGrupo.id));
+      },
+      get cargosDoOrgao() {
+        if (!this.selectedOrgao) return [];
+        return this.cargos.filter(c => String(c.id_orgao) === String(this.selectedOrgao.id));
+      },
+      get magistradosFiltrados() {
+        return ListUtils.filter(this.magistrados, this.magistradoSearch, ['nome', 'matricula'], '', '');
+      },
+      get magistradosTotalPages() {
+        return ListUtils.totalPages(this.magistradosFiltrados.length, this.magistradosPerPage);
+      },
+      get magistradosPaged() {
+        return ListUtils.paged(this.magistradosFiltrados, this.magistradosPage, this.magistradosPerPage);
       },
     };
   }

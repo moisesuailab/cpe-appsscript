@@ -79,3 +79,28 @@ function userGetAll() { _requireRole('admin'); return UserService.getAll(); }
 function userAdd(email, role) { _requireRole('admin'); return UserService.add(email, role); }
 function userUpdateRole(email, role) { _requireRole('admin'); return UserService.updateRole(email, role); }
 function userRemove(email) { _requireRole('admin'); return UserService.remove(email); }
+
+// Grupos
+function grupoCreate(data)     { _requireRole('editor'); return GrupoService.create(data); }
+function grupoUpdate(id, data) { _requireRole('editor'); return GrupoService.update(id, data); }
+function grupoDelete(id)       { _requireRole('editor'); return GrupoService.delete(id); }
+
+// Órgãos
+function orgaoCreate(data)     { _requireRole('editor'); return OrgaoService.create(data); }
+function orgaoUpdate(id, data) { _requireRole('editor'); return OrgaoService.update(id, data); }
+function orgaoDelete(id)       { _requireRole('editor'); return OrgaoService.delete(id); }
+
+// Cargos
+function cargoCreate(data)        { _requireRole('editor'); return CargoService.create(data); }
+function cargoUpdate(id, data)    { _requireRole('editor'); return CargoService.update(id, data); }
+function cargoDelete(id)          { _requireRole('editor'); return CargoService.delete(id); }
+function cargoSetPresidente(id)   { _requireRole('editor'); return CargoService.setPresidente(id); }
+
+// Ocupações
+function ocupacaoCreate(data)  { _requireRole('editor'); return OcupacaoService.create(data); }
+function ocupacaoRemover(id)   { _requireRole('editor'); return OcupacaoService.remover(id); }
+
+// Magistrados
+function magistradoCreate(data)     { _requireRole('editor'); return MagistradoService.create(data); }
+function magistradoUpdate(id, data) { _requireRole('editor'); return MagistradoService.update(id, data); }
+function magistradoDelete(id)       { _requireRole('editor'); return MagistradoService.delete(id); }

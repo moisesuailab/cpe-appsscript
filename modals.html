@@ -1,3 +1,168 @@
+<!-- ════ MODAIS: COMPOSIÇÃO ════ -->
+
+<!-- Adicionar Grupo -->
+  <template x-if="modal.contentKey === 'addGrupo'">
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Nome <span class="text-danger">*</span></label>
+        <input type="text" x-model="novoGrupo.nome" placeholder="Nome do grupo"
+               @keydown.enter="modal.onConfirm && modal.onConfirm()"
+               class="form-input w-full" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Descrição</label>
+        <textarea x-model="novoGrupo.descricao" placeholder="Descrição opcional"
+                  rows="3" class="form-input w-full resize-none"></textarea>
+      </div>
+    </div>
+  </template>
+
+<!-- Editar Grupo -->
+  <template x-if="modal.contentKey === 'editGrupo'">
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Nome <span class="text-danger">*</span></label>
+        <input type="text" x-model="editGrupo.nome" placeholder="Nome do grupo"
+               @keydown.enter="modal.onConfirm && modal.onConfirm()"
+               class="form-input w-full" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Descrição</label>
+        <textarea x-model="editGrupo.descricao" placeholder="Descrição opcional"
+                  rows="3" class="form-input w-full resize-none"></textarea>
+      </div>
+    </div>
+  </template>
+
+<!-- Adicionar Órgão -->
+  <template x-if="modal.contentKey === 'addOrgao'">
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Nome <span class="text-danger">*</span></label>
+        <input type="text" x-model="novoOrgao.nome" placeholder="Nome do órgão"
+               @keydown.enter="modal.onConfirm && modal.onConfirm()"
+               class="form-input w-full" />
+      </div>
+    </div>
+  </template>
+
+<!-- Editar Órgão -->
+  <template x-if="modal.contentKey === 'editOrgao'">
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Nome <span class="text-danger">*</span></label>
+        <input type="text" x-model="editOrgao.nome" placeholder="Nome do órgão"
+               @keydown.enter="modal.onConfirm && modal.onConfirm()"
+               class="form-input w-full" />
+      </div>
+    </div>
+  </template>
+
+<!-- Adicionar Cargo -->
+  <template x-if="modal.contentKey === 'addCargo'">
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Nome <span class="text-danger">*</span></label>
+        <input type="text" x-model="novoCargo.nome" placeholder="Nome do cargo"
+               @keydown.enter="modal.onConfirm && modal.onConfirm()"
+               class="form-input w-full" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Tipo <span class="text-danger">*</span></label>
+        <select x-model="novoCargo.tipo" class="select-input w-full">
+          <option value="titular">Titular</option>
+          <option value="suplente">Suplente</option>
+          <option value="substituto">Substituto</option>
+        </select>
+      </div>
+    </div>
+  </template>
+
+<!-- Editar Cargo -->
+  <template x-if="modal.contentKey === 'editCargo'">
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Nome <span class="text-danger">*</span></label>
+        <input type="text" x-model="editCargo.nome" placeholder="Nome do cargo"
+               @keydown.enter="modal.onConfirm && modal.onConfirm()"
+               class="form-input w-full" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Tipo <span class="text-danger">*</span></label>
+        <select x-model="editCargo.tipo" class="select-input w-full">
+          <option value="titular">Titular</option>
+          <option value="suplente">Suplente</option>
+          <option value="substituto">Substituto</option>
+        </select>
+      </div>
+    </div>
+  </template>
+
+<!-- Vincular Magistrado -->
+  <template x-if="modal.contentKey === 'vincularMagistrado'">
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Magistrado <span class="text-danger">*</span></label>
+        <select x-model="novaOcupacao.id_magistrado" class="select-input w-full">
+          <option value="">Selecione um magistrado...</option>
+          <template x-for="m in magistradosDisponiveisParaVincular()" :key="m.id">
+            <option :value="m.id" x-text="m.nome + ' — ' + m.matricula"></option>
+          </template>
+        </select>
+      </div>
+    </div>
+  </template>
+
+<!-- ════ MODAIS: MAGISTRADOS ════ -->
+
+<!-- Adicionar Magistrado -->
+  <template x-if="modal.contentKey === 'addMagistrado'">
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Nome <span class="text-danger">*</span></label>
+        <input type="text" x-model="novoMagistrado.nome" placeholder="Nome completo"
+               @keydown.enter="modal.onConfirm && modal.onConfirm()"
+               class="form-input w-full" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Matrícula <span class="text-danger">*</span></label>
+        <input type="text" x-model="novoMagistrado.matricula" placeholder="Matrícula"
+               @keydown.enter="modal.onConfirm && modal.onConfirm()"
+               class="form-input w-full" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Cidade</label>
+        <input type="text" x-model="novoMagistrado.cidade" placeholder="Cidade (opcional)"
+               @keydown.enter="modal.onConfirm && modal.onConfirm()"
+               class="form-input w-full" />
+      </div>
+    </div>
+  </template>
+
+<!-- Editar Magistrado -->
+  <template x-if="modal.contentKey === 'editMagistrado'">
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Nome <span class="text-danger">*</span></label>
+        <input type="text" x-model="editMagistrado.nome" placeholder="Nome completo"
+               @keydown.enter="modal.onConfirm && modal.onConfirm()"
+               class="form-input w-full" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Matrícula <span class="text-danger">*</span></label>
+        <input type="text" x-model="editMagistrado.matricula" placeholder="Matrícula"
+               @keydown.enter="modal.onConfirm && modal.onConfirm()"
+               class="form-input w-full" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Cidade</label>
+        <input type="text" x-model="editMagistrado.cidade" placeholder="Cidade (opcional)"
+               @keydown.enter="modal.onConfirm && modal.onConfirm()"
+               class="form-input w-full" />
+      </div>
+    </div>
+  </template>
+
 <!-- ════ MODAIS: USUÁRIOS ════ -->
 
 <!-- Adicionar Usuário -->

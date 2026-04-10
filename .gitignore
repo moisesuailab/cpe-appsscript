@@ -8,3 +8,5 @@ appsscript.txt
 
 # Exclui o README.md da regra de ignorar
 !README.md
+
+agents/.gitignore

@@ -69,11 +69,21 @@ const Setup = {
     }
 
     if (spreadsheet) {
-      try {
-        this._ensureSheet(spreadsheet, CONFIG.SHEETS.LOGS, CONFIG.COLUMNS.logs);
-      } catch (e) {
-        errors.push('Falha ao criar aba logs: ' + e.message);
-      }
+      const sheets = [
+        { name: CONFIG.SHEETS.LOGS,        columns: CONFIG.COLUMNS.logs        },
+        { name: CONFIG.SHEETS.GRUPOS,      columns: CONFIG.COLUMNS.grupos      },
+        { name: CONFIG.SHEETS.ORGAOS,      columns: CONFIG.COLUMNS.orgaos      },
+        { name: CONFIG.SHEETS.CARGOS,      columns: CONFIG.COLUMNS.cargos      },
+        { name: CONFIG.SHEETS.OCUPACOES,   columns: CONFIG.COLUMNS.ocupacoes   },
+        { name: CONFIG.SHEETS.MAGISTRADOS, columns: CONFIG.COLUMNS.magistrados },
+      ];
+      sheets.forEach(({ name, columns }) => {
+        try {
+          this._ensureSheet(spreadsheet, name, columns);
+        } catch (e) {
+          errors.push('Falha ao criar aba ' + name + ': ' + e.message);
+        }
+      });
     }
 
     try {
@@ -184,18 +194,27 @@ const Setup = {
       detail: rolesOk ? 'OK' : 'Valor corrompido — execute setupReset() e depois setupInit()',
     });
 
-    let logsSheetOk = false;
+    const requiredSheets = [
+      CONFIG.SHEETS.LOGS,
+      CONFIG.SHEETS.GRUPOS,
+      CONFIG.SHEETS.ORGAOS,
+      CONFIG.SHEETS.CARGOS,
+      CONFIG.SHEETS.OCUPACOES,
+      CONFIG.SHEETS.MAGISTRADOS,
+    ];
     if (spreadsheetId && sheetAccessOk) {
       try {
         const ss = SpreadsheetApp.openById(spreadsheetId);
-        logsSheetOk = !!ss.getSheetByName(CONFIG.SHEETS.LOGS);
+        requiredSheets.forEach(name => {
+          const ok = !!ss.getSheetByName(name);
+          checks.push({
+            label: 'Aba "' + name + '" existe',
+            ok,
+            detail: ok ? 'OK' : 'Nao encontrada — execute setupInit() para cria-la',
+          });
+        });
       } catch (_) { }
     }
-    checks.push({
-      label: 'Aba "' + CONFIG.SHEETS.LOGS + '" existe',
-      ok: logsSheetOk,
-      detail: logsSheetOk ? 'OK' : 'Nao encontrada — execute setupInit() para cria-la',
-    });
 
     const allPassed = checks.every(c => c.ok);
     checks.forEach(c => {

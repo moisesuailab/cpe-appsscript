@@ -34,10 +34,20 @@ const CONFIG = {
   ID_COLUMN: 'id',
 
   SHEETS: {
-    LOGS: 'logs',
+    LOGS:        'logs',
+    GRUPOS:      'grupos',
+    ORGAOS:      'orgaos',
+    CARGOS:      'cargos',
+    OCUPACOES:   'ocupacoes',
+    MAGISTRADOS: 'magistrados',
   },
 
   COLUMNS: {
-    logs: ['id', 'timestamp', 'userEmail', 'userName', 'action', 'entity', 'entityId', 'description'],
+    logs:        ['id', 'timestamp', 'userEmail', 'userName', 'action', 'entity', 'entityId', 'description'],
+    grupos:      ['id', 'nome', 'descricao'],
+    orgaos:      ['id', 'nome', 'id_grupo'],
+    cargos:      ['id', 'id_orgao', 'nome', 'tipo', 'is_presidente'],
+    ocupacoes:   ['id', 'id_cargo', 'id_magistrado'],
+    magistrados: ['id', 'nome', 'matricula', 'cidade'],
   },
 };

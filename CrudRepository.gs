@@ -92,12 +92,15 @@ const CrudRepository = {
     return this._withLock(() => {
       try {
         const headers = this.getHeaders(sheetName);
-        const newRow = Utils.objectToArray(headers, data);
+        const dataWithId = data[CONFIG.ID_COLUMN]
+          ? data
+          : { ...data, [CONFIG.ID_COLUMN]: this.generateId() };
+        const newRow = Utils.objectToArray(headers, dataWithId);
         const response = SheetsApiService.appendValues(CONFIG.SPREADSHEET_ID, sheetName, [newRow]);
         const updatedRange = response.updates.updatedRange;
         const rowMatch = updatedRange.match(/!A(\d+)/);
         const rowNumber = rowMatch ? parseInt(rowMatch[1]) : null;
-        return { success: true, rowNumber, data };
+        return { success: true, rowNumber, data: dataWithId };
       } catch (error) {
         Utils.logError('CrudRepository.create', error);
         throw error;
