@@ -6,6 +6,8 @@ function doGet(e) {
     alertasCount: _getAlertasCount(),
     userRole:     role,
     userEmail:    email,
+    appName:      CONFIG.APP_NAME,
+    appSubtitle:  CONFIG.APP_SUBTITLE || 'Subtítulo da aplicação',
   });
 }
 

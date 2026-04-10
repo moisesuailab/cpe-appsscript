@@ -738,17 +738,15 @@
       },
 
       _buildNavItems() {
-        const items = [
-          { id: 'dashboard',   label: 'Dashboard',   icon: lucideIcon('layout-dashboard'), badge: null },
-          { id: 'composicao',  label: 'Composição',  icon: lucideIcon('network'),          badge: null },
-          { id: 'magistrados',   label: 'Magistrados',  icon: lucideIcon('scale'),    badge: null },
-          { id: 'alertas',       label: 'Alertas',      icon: lucideIcon('bell'),  badge: this.badgeLabel(this.alertasCount) },
-          { id: 'configuracoes', label: 'Configurações', icon: lucideIcon('settings'), badge: null },
+        const all = [
+          { id: 'dashboard',    label: 'Dashboard',    icon: lucideIcon('layout-dashboard'), badge: null,                                    roles: null },
+          { id: 'magistrados',  label: 'Magistrados',  icon: lucideIcon('gavel'),             badge: null,                                    roles: null },
+          { id: 'composicao',   label: 'Composição',   icon: lucideIcon('network'),           badge: null,                                    roles: null },
+          { id: 'usuarios',     label: 'Usuários',     icon: lucideIcon('users'),             badge: null,                                    roles: [ROLES.ADMIN] },
+          { id: 'alertas',      label: 'Alertas',      icon: lucideIcon('bell'),              badge: this.badgeLabel(this.alertasCount),       roles: null },
+          { id: 'configuracoes',label: 'Configurações',icon: lucideIcon('settings'),          badge: null,                                    roles: null },
         ];
-        if (this.userRole === ROLES.ADMIN) {
-          items.push({ id: 'usuarios', label: 'Usuários', icon: lucideIcon('users'), badge: null });
-        }
-        this.navItems = items;
+        this.navItems = all.filter(item => !item.roles || item.roles.includes(this.userRole));
       },
 
       currentPageTitle()    { return this.pageConfig[this.currentView]?.title    || ''; },

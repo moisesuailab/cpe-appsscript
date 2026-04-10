@@ -1,5 +1,6 @@
 const CONFIG = {
-  APP_NAME:  'Minha Aplicação',
+  APP_NAME:     'Minha Aplicação',
+  APP_SUBTITLE: 'Subtítulo da aplicação',
 
   _KEYS: {
     SPREADSHEET_ID: 'SPREADSHEET_ID',
