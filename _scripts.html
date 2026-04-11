@@ -1032,6 +1032,181 @@
     };
   }
 
+  function contratosModule() {
+    return {
+      contratosLoaded:         false,
+      contratosUltimaConsulta: null,
+      contratosSearch:         '',
+      contratosPage:           1,
+      contratosPerPage:        10,
+
+      novoContrato: { id_estagiario: '', id_vaga: '', tipo_contrato: '', data_inicio: '', data_fim: '' },
+      editContrato: { id: '', id_estagiario: '', id_vaga: '', tipo_contrato: '', data_inicio: '', data_fim: '' },
+      _contratoDataFimSugerida: '',
+
+      initContratos() {
+        this.$watch('contratosSearch', () => { this.contratosPage = 1; this.$nextTick(() => lucide.createIcons()); });
+        this.$watch('contratosPage',   () => { this.$nextTick(() => lucide.createIcons()); });
+        window.addEventListener('app:navigate', (e) => {
+          if (e.detail.viewId === 'contratos' && !this.contratosLoaded) this.loadContratos();
+        });
+      },
+
+      loadContratos() {
+        Loading.show('Carregando contratos...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              const c = res.data.collections;
+              this.contratos      = c.contratos   || [];
+              this.estagiosList   = c.estagiarios || [];
+              this.vagas          = c.vagas        || [];
+              this.setores        = c.setores      || [];
+              this.contratosLoaded         = true;
+              this.estagiariosLoaded       = true;
+              this.contratosUltimaConsulta = this._agora();
+            } else Toast.error(res.message);
+            this.$nextTick(() => lucide.createIcons());
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .getAppData(['contratos', 'estagiarios', 'vagas', 'setores']);
+      },
+
+      contratoEstagiarioNome(c) {
+        const e = this.estagiosList.find(e => String(e.id) === String(c.id_estagiario));
+        return e ? e.nome : '—';
+      },
+
+      contratoVagaCodigo(c) {
+        const v = this.vagas.find(v => String(v.id) === String(c.id_vaga));
+        if (!v) return '—';
+        const setor = this.setores.find(s => String(s.id) === String(v.id_setor));
+        if (!setor || !v.numero_vaga) return '—';
+        return setor.sigla + String(v.numero_vaga).padStart(3, '0');
+      },
+
+      contratoVagaOpcaoLabel(v) {
+        const setor = this.setores.find(s => String(s.id) === String(v.id_setor));
+        const codigo = setor ? setor.sigla + String(v.numero_vaga).padStart(3, '0') : '—';
+        const tipoLabels = { graduacao: 'Graduação', pos_graduacao: 'Pós-Graduação', indefinido: 'Indefinido' };
+        return `${codigo} — ${tipoLabels[v.tipo_vaga] || v.tipo_vaga}`;
+      },
+
+      contratoStatus(c) {
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        const inicio = new Date(c.data_inicio);
+        const fim    = new Date(c.data_fim);
+        if (inicio <= hoje && fim >= hoje) return 'Ativo';
+        return 'Encerrado';
+      },
+
+      contratoDataFormatada(d) {
+        if (!d) return '—';
+        const dt = new Date(d);
+        if (isNaN(dt.getTime())) return String(d);
+        return dt.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+      },
+
+      contratoSugerirDataFim(modo) {
+        const obj = modo === 'novo' ? this.novoContrato : this.editContrato;
+        if (!obj.data_inicio || !obj.tipo_contrato) return;
+        const meses = obj.tipo_contrato === 'graduacao' ? 24 : 12;
+        const inicio = new Date(obj.data_inicio);
+        if (isNaN(inicio.getTime())) return;
+        const sugerida = new Date(inicio);
+        sugerida.setMonth(sugerida.getMonth() + meses);
+        const sugeridaStr = sugerida.toISOString().split('T')[0];
+        if (!obj.data_fim || obj.data_fim === this._contratoDataFimSugerida) {
+          obj.data_fim = sugeridaStr;
+          this._contratoDataFimSugerida = sugeridaStr;
+        }
+      },
+
+      openAddContrato() {
+        this.novoContrato = { id_estagiario: '', id_vaga: '', tipo_contrato: '', data_inicio: '', data_fim: '' };
+        this._contratoDataFimSugerida = '';
+        this.openModal({ title: 'Novo Contrato', size: 'md', contentKey: 'addContrato', confirmLabel: 'Criar', onConfirm: () => this.saveAddContrato() });
+      },
+
+      saveAddContrato() {
+        if (!this.novoContrato.id_estagiario) return Toast.warning('Selecione um estagiário.');
+        if (!this.novoContrato.id_vaga)       return Toast.warning('Selecione uma vaga.');
+        if (!this.novoContrato.tipo_contrato) return Toast.warning('Selecione o tipo de contrato.');
+        if (!this.novoContrato.data_inicio)   return Toast.warning('Informe a data de início.');
+        if (!this.novoContrato.data_fim)      return Toast.warning('Informe a data de fim.');
+        Loading.show('Salvando contrato...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              this.contratos.push(res.data);
+              this.closeModal();
+              Toast.success('Contrato criado com sucesso.');
+              this.$nextTick(() => lucide.createIcons());
+            } else Toast.error(res.message);
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .contratoCreate(this.novoContrato);
+      },
+
+      openEditContrato(c) {
+        this.editContrato = { ...c };
+        this._contratoDataFimSugerida = '';
+        this.openModal({ title: 'Editar Contrato', size: 'md', contentKey: 'editContrato', confirmLabel: 'Salvar', onConfirm: () => this.saveEditContrato() });
+      },
+
+      saveEditContrato() {
+        if (!this.editContrato.tipo_contrato) return Toast.warning('Selecione o tipo de contrato.');
+        if (!this.editContrato.data_inicio)   return Toast.warning('Informe a data de início.');
+        if (!this.editContrato.data_fim)      return Toast.warning('Informe a data de fim.');
+        Loading.show('Salvando contrato...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              const idx = this.contratos.findIndex(ct => ct.id === this.editContrato.id);
+              if (idx !== -1) this.contratos[idx] = res.data;
+              this.closeModal();
+              Toast.success('Contrato atualizado com sucesso.');
+              this.$nextTick(() => lucide.createIcons());
+            } else Toast.error(res.message);
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .contratoUpdate(this.editContrato.id, this.editContrato);
+      },
+
+      deleteContrato(c) {
+        const nome = this.contratoEstagiarioNome(c);
+        this.showConfirm({
+          message:      'Excluir contrato?',
+          detail:       `O contrato de '${nome}' será removido permanentemente.`,
+          confirmLabel: 'Excluir',
+          variant:      'danger',
+          onConfirm: () => {
+            Loading.show('Excluindo contrato...');
+            google.script.run
+              .withSuccessHandler((res) => {
+                Loading.hide();
+                if (res.status === 'success') {
+                  this.contratos = this.contratos.filter(ct => ct.id !== c.id);
+                  Toast.success('Contrato excluído com sucesso.');
+                  this.$nextTick(() => lucide.createIcons());
+                } else Toast.error(res.message);
+              })
+              .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+              .contratoDelete(c.id);
+          },
+        });
+      },
+
+      _agora() {
+        return new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+      },
+    };
+  }
+
   function configuracaoModule() {
     return {
       gerenteCPE:                 null,
@@ -1139,6 +1314,7 @@
         dashboard:      { title: 'Dashboard',      subtitle: 'Visão geral da aplicação' },
         vagas:          { title: 'Vagas',          subtitle: 'Gerencie as vagas de estágio' },
         estagiarios:    { title: 'Estagiários',    subtitle: 'Gerencie o cadastro de estagiários' },
+        contratos:      { title: 'Contratos',      subtitle: 'Gerencie os contratos de estágio' },
         composicao:     { title: 'Composição',     subtitle: 'Gerencie grupos, órgãos, cargos e ocupações' },
         magistrados:    { title: 'Magistrados',    subtitle: 'Gerencie o cadastro de magistrados' },
         alertas:        { title: 'Alertas',        subtitle: 'Notificações e avisos pendentes' },
@@ -1156,6 +1332,7 @@
           { id: 'dashboard',    label: 'Dashboard',    icon: lucideIcon('layout-dashboard'), badge: null,                                    roles: null },
           { id: 'vagas',        label: 'Vagas',        icon: lucideIcon('briefcase'),         badge: null,                                    roles: null },
           { id: 'estagiarios',  label: 'Estagiários',  icon: lucideIcon('graduation-cap'),    badge: null,                                    roles: null },
+          { id: 'contratos',    label: 'Contratos',    icon: lucideIcon('file-text'),         badge: null,                                    roles: null },
           { id: 'magistrados',  label: 'Magistrados',  icon: lucideIcon('gavel'),             badge: null,                                    roles: null },
           { id: 'composicao',   label: 'Composição',   icon: lucideIcon('network'),           badge: null,                                    roles: null },
           { id: 'usuarios',     label: 'Usuários',     icon: lucideIcon('users'),             badge: null,                                    roles: [ROLES.ADMIN] },
@@ -1176,6 +1353,7 @@
       ...magistradosModule(),
       ...estagiariosModule(),
       ...vagasModule(),
+      ...contratosModule(),
       ...configuracaoModule(),
       ...usersModule(),
       ...modalModule(),
@@ -1193,6 +1371,7 @@
         this.initMagistrados();
         this.initEstagiarios();
         this.initVagas();
+        this.initContratos();
         this.initConfiguracao();
         this.$nextTick(() => {
           lucide.createIcons();
@@ -1248,6 +1427,22 @@
       },
       get estagiosPaged() {
         return ListUtils.paged(this.estagiosFiltrados, this.estagiariosPage, this.estagiariosPerPage);
+      },
+
+      get contratosFiltrados() {
+        const term = this.contratosSearch.toLowerCase().trim();
+        if (!term) return this.contratos;
+        return this.contratos.filter(c => {
+          const nome   = this.contratoEstagiarioNome(c).toLowerCase();
+          const codigo = this.contratoVagaCodigo(c).toLowerCase();
+          return nome.includes(term) || codigo.includes(term);
+        });
+      },
+      get contratosTotalPages() {
+        return ListUtils.totalPages(this.contratosFiltrados.length, this.contratosPerPage);
+      },
+      get contratosPaged() {
+        return ListUtils.paged(this.contratosFiltrados, this.contratosPage, this.contratosPerPage);
       },
 
       get vagasFiltradas() {

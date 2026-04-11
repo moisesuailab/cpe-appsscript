@@ -121,3 +121,8 @@ function estagiarioDelete(id)       { _requireRole('editor'); return EstagiarioS
 function vagaCreate(data)     { _requireRole('editor'); return VagaService.create(data); }
 function vagaUpdate(id, data) { _requireRole('editor'); return VagaService.update(id, data); }
 function vagaDelete(id)       { _requireRole('editor'); return VagaService.delete(id); }
+
+// Contratos
+function contratoCreate(data)     { _requireRole('editor'); return ContratoService.create(data); }
+function contratoUpdate(id, data) { _requireRole('editor'); return ContratoService.update(id, data); }
+function contratoDelete(id)       { _requireRole('editor'); return ContratoService.delete(id); }

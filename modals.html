@@ -514,6 +514,93 @@
     </div>
   </template>
 
+<!-- ════ MODAIS: CONTRATOS ════ -->
+
+<!-- Adicionar Contrato -->
+  <template x-if="modal.contentKey === 'addContrato'">
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Estagiário <span class="text-danger">*</span></label>
+        <select x-model="novoContrato.id_estagiario" class="select-input w-full">
+          <option value="">Selecione um estagiário...</option>
+          <template x-for="e in estagiosList" :key="e.id">
+            <option :value="e.id" x-text="e.nome"></option>
+          </template>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Vaga <span class="text-danger">*</span></label>
+        <select x-model="novoContrato.id_vaga" class="select-input w-full">
+          <option value="">Selecione uma vaga...</option>
+          <template x-for="v in vagas" :key="v.id">
+            <option :value="v.id" x-text="contratoVagaOpcaoLabel(v)"></option>
+          </template>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Tipo de Contrato <span class="text-danger">*</span></label>
+        <select x-model="novoContrato.tipo_contrato"
+                @change="contratoSugerirDataFim('novo')"
+                class="select-input w-full">
+          <option value="">Selecione o tipo...</option>
+          <option value="graduacao">Graduação</option>
+          <option value="pos_graduacao">Pós-Graduação</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1.5">Data de Início <span class="text-danger">*</span></label>
+          <input type="date" x-model="novoContrato.data_inicio"
+                 @change="contratoSugerirDataFim('novo')"
+                 class="form-input w-full" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1.5">Data de Fim <span class="text-danger">*</span></label>
+          <input type="date" x-model="novoContrato.data_fim"
+                 class="form-input w-full" />
+        </div>
+      </div>
+    </div>
+  </template>
+
+<!-- Editar Contrato -->
+  <template x-if="modal.contentKey === 'editContrato'">
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Estagiário</label>
+        <div class="form-input w-full bg-bg-medium text-text-muted cursor-default"
+             x-text="contratoEstagiarioNome(editContrato)"></div>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Vaga</label>
+        <div class="form-input w-full bg-bg-medium text-text-muted cursor-default font-mono"
+             x-text="contratoVagaCodigo(editContrato)"></div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Tipo de Contrato <span class="text-danger">*</span></label>
+        <select x-model="editContrato.tipo_contrato"
+                @change="contratoSugerirDataFim('edit')"
+                class="select-input w-full">
+          <option value="graduacao">Graduação</option>
+          <option value="pos_graduacao">Pós-Graduação</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1.5">Data de Início <span class="text-danger">*</span></label>
+          <input type="date" x-model="editContrato.data_inicio"
+                 @change="contratoSugerirDataFim('edit')"
+                 class="form-input w-full" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1.5">Data de Fim <span class="text-danger">*</span></label>
+          <input type="date" x-model="editContrato.data_fim"
+                 class="form-input w-full" />
+        </div>
+      </div>
+    </div>
+  </template>
+
 <!-- ════ MODAIS: CONFIGURAÇÕES ════ -->
 
 <!-- Editar Gerente CPE -->
