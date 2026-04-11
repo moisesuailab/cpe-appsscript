@@ -1,7 +1,7 @@
 const Setup = {
 
   _CONFIG: {
-    spreadsheetId: '1v4LJt-vOegSUnYAHZpK7NjasT4qokxou4i4uNoaWq9M',
+    spreadsheetId: '15HG60p43T5PjQ8Kgk94IHoGhj571oN-gSnXrR4VjbWc',
   },
 
   _ensureSheet(spreadsheet, sheetName, headers) {
@@ -110,6 +110,9 @@ const Setup = {
         { name: CONFIG.SHEETS.MAGISTRADOS,     columns: CONFIG.COLUMNS.magistrados     },
         { name: CONFIG.SHEETS.SETORES,         columns: CONFIG.COLUMNS.setores         },
         { name: CONFIG.SHEETS.GESTORES_SETOR,  columns: CONFIG.COLUMNS.gestores_setor  },
+        { name: CONFIG.SHEETS.ESTAGIARIOS,     columns: CONFIG.COLUMNS.estagiarios     },
+        { name: CONFIG.SHEETS.CONTRATOS,       columns: CONFIG.COLUMNS.contratos       },
+        { name: CONFIG.SHEETS.VAGAS,           columns: CONFIG.COLUMNS.vagas           },
       ];
       sheets.forEach(({ name, columns }) => {
         try {
@@ -243,6 +246,9 @@ const Setup = {
       CONFIG.SHEETS.MAGISTRADOS,
       CONFIG.SHEETS.SETORES,
       CONFIG.SHEETS.GESTORES_SETOR,
+      CONFIG.SHEETS.ESTAGIARIOS,
+      CONFIG.SHEETS.CONTRATOS,
+      CONFIG.SHEETS.VAGAS,
     ];
     if (spreadsheetId && sheetAccessOk) {
       try {

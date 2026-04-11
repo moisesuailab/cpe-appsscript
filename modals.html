@@ -163,6 +163,357 @@
     </div>
   </template>
 
+<!-- ════ MODAIS: ESTAGIÁRIOS ════ -->
+
+<!-- Adicionar Estagiário -->
+  <template x-if="modal.contentKey === 'addEstagiario'">
+    <div class="space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1.5">Nome <span class="text-danger">*</span></label>
+          <input type="text" x-model="novoEstagiario.nome" placeholder="Nome completo"
+                 class="form-input w-full" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1.5">CPF <span class="text-danger">*</span></label>
+          <input type="text" :value="novoEstagiario.cpf"
+                 @input="novoEstagiario.cpf = _maskCpf($event.target.value)"
+                 placeholder="000.000.000-00" maxlength="14"
+                 class="form-input w-full" />
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1.5">E-mail</label>
+          <input type="email" x-model="novoEstagiario.email" placeholder="E-mail (opcional)"
+                 class="form-input w-full" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1.5">Matrícula</label>
+          <input type="text" x-model="novoEstagiario.matricula" placeholder="Matrícula (opcional)"
+                 class="form-input w-full" />
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1.5">Data de Nascimento</label>
+          <input type="date" x-model="novoEstagiario.data_nascimento"
+                 class="form-input w-full" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1.5">Telefone</label>
+          <input type="text" :value="novoEstagiario.telefone"
+                 @input="novoEstagiario.telefone = _maskPhone($event.target.value)"
+                 placeholder="(00) 00000-0000" maxlength="15"
+                 class="form-input w-full" />
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1.5">Curso</label>
+          <input type="text" x-model="novoEstagiario.curso" placeholder="Curso (opcional)"
+                 class="form-input w-full" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1.5">Instituição</label>
+          <input type="text" x-model="novoEstagiario.instituicao" placeholder="Instituição (opcional)"
+                 class="form-input w-full" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Observações</label>
+        <textarea x-model="novoEstagiario.observacoes" placeholder="Observações (opcional)"
+                  rows="3" class="form-input w-full resize-none"></textarea>
+      </div>
+    </div>
+  </template>
+
+<!-- Editar Estagiário -->
+  <template x-if="modal.contentKey === 'editEstagiario'">
+    <div class="space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1.5">Nome <span class="text-danger">*</span></label>
+          <input type="text" x-model="editEstagiario.nome" placeholder="Nome completo"
+                 class="form-input w-full" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1.5">CPF <span class="text-danger">*</span></label>
+          <input type="text" :value="editEstagiario.cpf"
+                 @input="editEstagiario.cpf = _maskCpf($event.target.value)"
+                 placeholder="000.000.000-00" maxlength="14"
+                 class="form-input w-full" />
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1.5">E-mail</label>
+          <input type="email" x-model="editEstagiario.email" placeholder="E-mail (opcional)"
+                 class="form-input w-full" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1.5">Matrícula</label>
+          <input type="text" x-model="editEstagiario.matricula" placeholder="Matrícula (opcional)"
+                 class="form-input w-full" />
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1.5">Data de Nascimento</label>
+          <input type="date" x-model="editEstagiario.data_nascimento"
+                 class="form-input w-full" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1.5">Telefone</label>
+          <input type="text" :value="editEstagiario.telefone"
+                 @input="editEstagiario.telefone = _maskPhone($event.target.value)"
+                 placeholder="(00) 00000-0000" maxlength="15"
+                 class="form-input w-full" />
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1.5">Curso</label>
+          <input type="text" x-model="editEstagiario.curso" placeholder="Curso (opcional)"
+                 class="form-input w-full" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-text-main mb-1.5">Instituição</label>
+          <input type="text" x-model="editEstagiario.instituicao" placeholder="Instituição (opcional)"
+                 class="form-input w-full" />
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Observações</label>
+        <textarea x-model="editEstagiario.observacoes" placeholder="Observações (opcional)"
+                  rows="3" class="form-input w-full resize-none"></textarea>
+      </div>
+    </div>
+  </template>
+
+<!-- Visualizar Estagiário -->
+  <template x-if="modal.contentKey === 'viewEstagiario'">
+    <div class="space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+        <div>
+          <p class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-0.5">Nome</p>
+          <p class="text-sm text-text-main" x-text="viewEstagiario.nome || '—'"></p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-0.5">CPF</p>
+          <p class="text-sm text-text-main" x-text="_maskCpf(viewEstagiario.cpf) || '—'"></p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-0.5">E-mail</p>
+          <p class="text-sm text-text-main" x-text="viewEstagiario.email || '—'"></p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-0.5">Matrícula</p>
+          <p class="text-sm text-text-main" x-text="viewEstagiario.matricula || '—'"></p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-0.5">Data de Nascimento</p>
+          <p class="text-sm text-text-main" x-text="viewEstagiario.data_nascimento || '—'"></p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-0.5">Telefone</p>
+          <p class="text-sm text-text-main" x-text="_maskPhone(viewEstagiario.telefone) || '—'"></p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-0.5">Curso</p>
+          <p class="text-sm text-text-main" x-text="viewEstagiario.curso || '—'"></p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-0.5">Instituição</p>
+          <p class="text-sm text-text-main" x-text="viewEstagiario.instituicao || '—'"></p>
+        </div>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-0.5">Observações</p>
+        <p class="text-sm text-text-main whitespace-pre-wrap" x-text="viewEstagiario.observacoes || '—'"></p>
+      </div>
+    </div>
+  </template>
+
+<!-- ════ MODAIS: VAGAS ════ -->
+
+<!-- Adicionar Vaga -->
+  <template x-if="modal.contentKey === 'addVaga'">
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Setor <span class="text-danger">*</span></label>
+        <select x-model="novaVaga.id_setor" class="select-input w-full">
+          <option value="">Selecione um setor...</option>
+          <template x-for="s in setores" :key="s.id">
+            <option :value="s.id" x-text="s.nome + ' (' + s.sigla + ')'"></option>
+          </template>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Tipo de Vaga <span class="text-danger">*</span></label>
+        <select x-model="novaVaga.tipo_vaga" class="select-input w-full">
+          <option value="">Selecione o tipo...</option>
+          <option value="graduacao">Graduação</option>
+          <option value="pos_graduacao">Pós-Graduação</option>
+          <option value="indefinido">Indefinido</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Descrição</label>
+        <textarea x-model="novaVaga.descricao" placeholder="Descrição opcional"
+                  rows="3" class="form-input w-full resize-none"></textarea>
+      </div>
+    </div>
+  </template>
+
+<!-- Editar Vaga -->
+  <template x-if="modal.contentKey === 'editVaga'">
+    <div class="space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Código</label>
+          <div class="form-input w-full bg-bg-medium text-text-muted cursor-default font-mono"
+               x-text="vagaCodigo(editVaga)"></div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Setor</label>
+          <div class="form-input w-full bg-bg-medium text-text-muted cursor-default"
+               x-text="vagaSetorNome(editVaga)"></div>
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Tipo de Vaga <span class="text-danger">*</span></label>
+        <select x-model="editVaga.tipo_vaga" class="select-input w-full">
+          <option value="graduacao">Graduação</option>
+          <option value="pos_graduacao">Pós-Graduação</option>
+          <option value="indefinido">Indefinido</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-2">Alocação <span class="text-danger">*</span></label>
+        <div class="space-y-2">
+          <label class="flex items-start gap-3 cursor-pointer">
+            <input type="radio" x-model="editVagaAlocacao" value="nao_alocada"
+                   @change="editVagaOnAlocacaoChange()"
+                   class="mt-0.5 accent-primary" />
+            <span class="text-sm text-text-main">Não alocada</span>
+          </label>
+          <label class="flex items-start gap-3 cursor-pointer">
+            <input type="radio" x-model="editVagaAlocacao" value="setor"
+                   @change="editVagaOnAlocacaoChange()"
+                   class="mt-0.5 accent-primary" />
+            <div>
+              <span class="text-sm text-text-main">Alocada ao setor</span>
+              <template x-if="editVagaAlocacao === 'setor' && editVagaGestorAtual">
+                <p class="text-xs text-text-muted mt-0.5">
+                  Gestor atual: <span class="font-medium" x-text="editVagaGestorAtual"></span>
+                </p>
+              </template>
+            </div>
+          </label>
+          <label class="flex items-start gap-3 cursor-pointer">
+            <input type="radio" x-model="editVagaAlocacao" value="cargo"
+                   @change="editVagaOnAlocacaoChange()"
+                   class="mt-0.5 accent-primary" />
+            <span class="text-sm text-text-main">Alocada a cargo de órgão julgador</span>
+          </label>
+        </div>
+      </div>
+      <!-- Cascata: visível somente quando "cargo" selecionado -->
+      <template x-if="editVagaAlocacao === 'cargo'">
+        <div class="space-y-3 pl-7">
+          <div>
+            <label class="block text-sm font-medium text-text-main mb-1.5">Grupo Jurisdicional <span class="text-danger">*</span></label>
+            <select x-model="editVagaCascata.id_grupo"
+                    @change="editVagaCascata.id_orgao = ''; editVagaCascata.id_cargo = ''"
+                    class="select-input w-full">
+              <option value="">Selecione um grupo...</option>
+              <template x-for="g in grupos" :key="g.id">
+                <option :value="g.id" x-text="g.nome"></option>
+              </template>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-text-main mb-1.5">Órgão Julgador <span class="text-danger">*</span></label>
+            <select x-model="editVagaCascata.id_orgao"
+                    @change="editVagaCascata.id_cargo = ''"
+                    :disabled="!editVagaCascata.id_grupo"
+                    class="select-input w-full">
+              <option value="">Selecione um órgão...</option>
+              <template x-for="o in orgaos.filter(o => o.id_grupo === editVagaCascata.id_grupo)" :key="o.id">
+                <option :value="o.id" x-text="o.nome"></option>
+              </template>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-text-main mb-1.5">Cargo <span class="text-danger">*</span></label>
+            <select x-model="editVagaCascata.id_cargo"
+                    :disabled="!editVagaCascata.id_orgao"
+                    class="select-input w-full">
+              <option value="">Selecione um cargo...</option>
+              <template x-for="c in cargos.filter(c => c.id_orgao === editVagaCascata.id_orgao)" :key="c.id">
+                <option :value="c.id" x-text="c.nome + (vagaCargoMagistrado(c.id) ? ' — ' + vagaCargoMagistrado(c.id) : '')"></option>
+              </template>
+            </select>
+          </div>
+        </div>
+      </template>
+      <div>
+        <label class="block text-sm font-medium text-text-main mb-1.5">Descrição</label>
+        <textarea x-model="editVaga.descricao" placeholder="Descrição opcional"
+                  rows="3" class="form-input w-full resize-none"></textarea>
+      </div>
+    </div>
+  </template>
+
+<!-- Visualizar Vaga -->
+  <template x-if="modal.contentKey === 'viewVaga'">
+    <div class="space-y-4">
+      <div class="grid grid-cols-2 gap-x-6 gap-y-3">
+        <div>
+          <p class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-0.5">Código</p>
+          <p class="text-sm font-semibold text-text-main font-mono" x-text="vagaCodigo(viewVaga)"></p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-0.5">Tipo de Vaga</p>
+          <p class="text-sm text-text-main" x-text="vagaTipoLabel(viewVaga.tipo_vaga)"></p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-0.5">Status</p>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                :class="{
+                  'bg-green-50 text-green-700': viewVaga.status === 'alocada',
+                  'bg-yellow-50 text-yellow-700': viewVaga.status === 'nao_alocada'
+                }"
+                x-text="viewVaga.status === 'alocada' ? 'Alocada' : 'Não alocada'">
+          </span>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-0.5">Estagiário</p>
+          <p class="text-sm text-text-main" x-text="vagaEstagiario(viewVaga) || '—'"></p>
+        </div>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Lotação</p>
+        <template x-if="!vagaLotacao(viewVaga)">
+          <p class="text-sm text-text-muted">Não alocada</p>
+        </template>
+        <template x-if="vagaLotacao(viewVaga)">
+          <div>
+            <p class="text-sm font-medium text-text-main" x-text="vagaLotacao(viewVaga).linha1"></p>
+            <p class="text-sm text-text-muted" x-show="vagaLotacao(viewVaga).linha2" x-text="vagaLotacao(viewVaga).linha2"></p>
+          </div>
+        </template>
+      </div>
+      <template x-if="viewVaga.descricao">
+        <div>
+          <p class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-0.5">Descrição</p>
+          <p class="text-sm text-text-main whitespace-pre-wrap" x-text="viewVaga.descricao"></p>
+        </div>
+      </template>
+    </div>
+  </template>
+
 <!-- ════ MODAIS: CONFIGURAÇÕES ════ -->
 
 <!-- Editar Gerente CPE -->

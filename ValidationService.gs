@@ -73,6 +73,38 @@ const ValidationService = {
       }
       return true;
     },
+
+    cpf(value, fieldName) {
+      if (value === null || value === undefined || String(value).trim() === '') return true;
+      const digits = String(value).replace(/\D/g, '');
+      if (!/^\d{11}$/.test(digits)) throw new Error(`Campo '${fieldName}' deve conter 11 dígitos.`);
+      if (/^(\d)\1{10}$/.test(digits)) throw new Error(`Campo '${fieldName}' inválido.`);
+      const base9 = digits.substring(0, 9);
+      const d1 = ValidationService._calcDigito(base9, 10);
+      const d2 = ValidationService._calcDigito(base9 + d1, 11);
+      if (digits !== base9 + d1.toString() + d2.toString()) {
+        throw new Error(`Campo '${fieldName}' inválido.`);
+      }
+      return true;
+    },
+
+    phone(value, fieldName) {
+      if (value === null || value === undefined || String(value).trim() === '') return true;
+      const digits = String(value).replace(/\D/g, '');
+      if (digits.length < 10 || digits.length > 11) {
+        throw new Error(`Campo '${fieldName}' deve ter 10 ou 11 dígitos.`);
+      }
+      return true;
+    },
+  },
+
+  _calcDigito(base, fator) {
+    let total = 0;
+    for (let i = 0; i < base.length; i++) {
+      total += parseInt(base[i], 10) * fator--;
+    }
+    const resto = total % 11;
+    return resto < 2 ? 0 : 11 - resto;
   },
   
   validate(data, rules) {

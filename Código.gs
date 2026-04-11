@@ -111,3 +111,13 @@ function magistradoDelete(id)       { _requireRole('editor'); return MagistradoS
 function setorGetAll()                   { _requireAccess();       return SetorService.findAll(); }
 function gestorSetorGetBySetor(id_setor) { _requireAccess();       return GestorSetorService.getBySetor(id_setor); }
 function gestorSetorUpdate(id, data)     { _requireRole('editor'); return GestorSetorService.update(id, data); }
+
+// Estagiários
+function estagiarioCreate(data)     { _requireRole('editor'); return EstagiarioService.create(data); }
+function estagiarioUpdate(id, data) { _requireRole('editor'); return EstagiarioService.update(id, data); }
+function estagiarioDelete(id)       { _requireRole('editor'); return EstagiarioService.delete(id); }
+
+// Vagas
+function vagaCreate(data)     { _requireRole('editor'); return VagaService.create(data); }
+function vagaUpdate(id, data) { _requireRole('editor'); return VagaService.update(id, data); }
+function vagaDelete(id)       { _requireRole('editor'); return VagaService.delete(id); }

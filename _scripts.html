@@ -620,6 +620,418 @@
     };
   }
 
+  function estagiariosModule() {
+    return {
+      estagiosList:              [],
+      contratos:                 [],
+      estagiariosLoaded:         false,
+      estagiariosUltimaConsulta: null,
+      estagiariosSearch:         '',
+      estagiariosPage:           1,
+      estagiariosPerPage:        10,
+
+      novoEstagiario:  { nome: '', cpf: '', email: '', matricula: '', data_nascimento: '', telefone: '', curso: '', instituicao: '', observacoes: '' },
+      editEstagiario:  { id: '', nome: '', cpf: '', email: '', matricula: '', data_nascimento: '', telefone: '', curso: '', instituicao: '', observacoes: '' },
+      viewEstagiario:  { id: '', nome: '', cpf: '', email: '', matricula: '', data_nascimento: '', telefone: '', curso: '', instituicao: '', observacoes: '' },
+
+      initEstagiarios() {
+        this.$watch('estagiariosSearch', () => { this.estagiariosPage = 1; this.$nextTick(() => lucide.createIcons()); });
+        this.$watch('estagiariosPage',   () => { this.$nextTick(() => lucide.createIcons()); });
+
+        window.addEventListener('app:navigate', (e) => {
+          if (e.detail.viewId === 'estagiarios' && !this.estagiariosLoaded) this.loadEstagiarios();
+        });
+      },
+
+      loadEstagiarios() {
+        Loading.show('Carregando estagiários...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              const c = res.data.collections;
+              this.estagiosList    = c.estagiarios || [];
+              this.contratos       = c.contratos   || [];
+              this.estagiariosLoaded         = true;
+              this.estagiariosUltimaConsulta = this._agora();
+            } else Toast.error(res.message);
+            this.$nextTick(() => lucide.createIcons());
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .getAppData(['estagiarios', 'contratos']);
+      },
+
+      openAddEstagiario() {
+        this.novoEstagiario = { nome: '', cpf: '', email: '', matricula: '', data_nascimento: '', telefone: '', curso: '', instituicao: '', observacoes: '' };
+        this.openModal({ title: 'Novo Estagiário', size: 'lg', contentKey: 'addEstagiario', confirmLabel: 'Criar', onConfirm: () => this.saveAddEstagiario() });
+      },
+
+      saveAddEstagiario() {
+        if (!this._isValidCpf(this.novoEstagiario.cpf)) {
+          Toast.error('CPF inválido. Verifique o número informado.');
+          return;
+        }
+        if (!this._isValidPhone(this.novoEstagiario.telefone)) {
+          Toast.error('Telefone inválido. Informe 10 ou 11 dígitos.');
+          return;
+        }
+        const payload = { ...this.novoEstagiario, cpf: this._stripMask(this.novoEstagiario.cpf), telefone: this._stripMask(this.novoEstagiario.telefone) };
+        Loading.show('Salvando estagiário...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              this.estagiosList.push(res.data);
+              this.closeModal();
+              Toast.success('Estagiário criado com sucesso.');
+              this.$nextTick(() => lucide.createIcons());
+            } else Toast.error(res.message);
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .estagiarioCreate(payload);
+      },
+
+      openViewEstagiario(estagiario) {
+        this.viewEstagiario = { ...estagiario };
+        this.openModal({ title: 'Detalhes do Estagiário', size: 'lg', contentKey: 'viewEstagiario', showConfirm: false, cancelLabel: 'Sair' });
+        this.$nextTick(() => lucide.createIcons());
+      },
+
+      openEditEstagiario(estagiario) {
+        this.editEstagiario = { ...estagiario, cpf: this._maskCpf(estagiario.cpf), telefone: this._maskPhone(estagiario.telefone) };
+        this.openModal({ title: 'Editar Estagiário', size: 'lg', contentKey: 'editEstagiario', confirmLabel: 'Salvar', onConfirm: () => this.saveEditEstagiario() });
+      },
+
+      saveEditEstagiario() {
+        if (!this._isValidCpf(this.editEstagiario.cpf)) {
+          Toast.error('CPF inválido. Verifique o número informado.');
+          return;
+        }
+        if (!this._isValidPhone(this.editEstagiario.telefone)) {
+          Toast.error('Telefone inválido. Informe 10 ou 11 dígitos.');
+          return;
+        }
+        const payload = { ...this.editEstagiario, cpf: this._stripMask(this.editEstagiario.cpf), telefone: this._stripMask(this.editEstagiario.telefone) };
+        Loading.show('Salvando estagiário...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              const idx = this.estagiosList.findIndex(e => e.id === this.editEstagiario.id);
+              if (idx !== -1) this.estagiosList[idx] = res.data;
+              this.closeModal();
+              Toast.success('Estagiário atualizado com sucesso.');
+              this.$nextTick(() => lucide.createIcons());
+            } else Toast.error(res.message);
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .estagiarioUpdate(payload.id, payload);
+      },
+
+      deleteEstagiario(estagiario) {
+        this.showConfirm({
+          message: 'Excluir estagiário?',
+          detail: `O estagiário '${estagiario.nome}' será removido permanentemente.`,
+          confirmLabel: 'Excluir',
+          variant: 'danger',
+          onConfirm: () => {
+            Loading.show('Excluindo estagiário...');
+            google.script.run
+              .withSuccessHandler((res) => {
+                Loading.hide();
+                if (res.status === 'success') {
+                  this.estagiosList = this.estagiosList.filter(e => e.id !== estagiario.id);
+                  Toast.success('Estagiário excluído com sucesso.');
+                  this.$nextTick(() => lucide.createIcons());
+                } else Toast.error(res.message);
+              })
+              .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+              .estagiarioDelete(estagiario.id);
+          },
+        });
+      },
+
+      _maskCpf(value) {
+        if (!value) return '';
+        return String(value).replace(/\D/g, '').substring(0, 11)
+          .replace(/(\d{3})(\d)/, '$1.$2')
+          .replace(/(\d{3})(\d)/, '$1.$2')
+          .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      },
+
+      _maskPhone(value) {
+        if (!value) return '';
+        const d = String(value).replace(/\D/g, '').substring(0, 11);
+        if (d.length <= 10) {
+          return d.replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{4})(\d{1,4})$/, '$1-$2');
+        }
+        return d.replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d{1,4})$/, '$1-$2');
+      },
+
+      _stripMask(value) {
+        return value ? String(value).replace(/\D/g, '') : '';
+      },
+
+      _isValidCpf(value) {
+        const d = String(value || '').replace(/\D/g, '');
+        if (!/^\d{11}$/.test(d)) return false;
+        if (/^(\d)\1{10}$/.test(d)) return false;
+        const calc = (base, fator) => {
+          let total = 0;
+          for (let i = 0; i < base.length; i++) total += parseInt(base[i], 10) * fator--;
+          const r = total % 11;
+          return r < 2 ? 0 : 11 - r;
+        };
+        const base9 = d.substring(0, 9);
+        const d1 = calc(base9, 10);
+        const d2 = calc(base9 + d1, 11);
+        return d === base9 + d1.toString() + d2.toString();
+      },
+
+      _isValidPhone(value) {
+        if (!value || String(value).trim() === '') return true;
+        const d = String(value).replace(/\D/g, '');
+        return d.length === 10 || d.length === 11;
+      },
+
+      _agora() {
+        return new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+      },
+    };
+  }
+
+  function vagasModule() {
+    return {
+      vagas:             [],
+      setores:           [],
+      gestores_setor:    [],
+      vagasLoaded:         false,
+      vagasUltimaConsulta: null,
+      vagasSearch:         '',
+      vagasPage:           1,
+      vagasPerPage:        10,
+
+      novaVaga:         { id_setor: '', tipo_vaga: '', descricao: '' },
+      editVaga:         { id: '', numero_vaga: '', id_setor: '', id_cargo: '', tipo_vaga: '', status: '', descricao: '' },
+      viewVaga:         {},
+      editVagaAlocacao: 'nao_alocada',
+      editVagaCascata:  { id_grupo: '', id_orgao: '', id_cargo: '' },
+      editVagaGestorAtual: '',
+
+      initVagas() {
+        this.$watch('vagasSearch', () => { this.vagasPage = 1; this.$nextTick(() => lucide.createIcons()); });
+        this.$watch('vagasPage',   () => { this.$nextTick(() => lucide.createIcons()); });
+        window.addEventListener('app:navigate', (e) => {
+          if (e.detail.viewId === 'vagas' && !this.vagasLoaded) this.loadVagas();
+        });
+      },
+
+      loadVagas() {
+        Loading.show('Carregando vagas...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              const c = res.data.collections;
+              this.vagas          = c.vagas          || [];
+              this.setores        = c.setores        || [];
+              this.gestores_setor = c.gestores_setor || [];
+              this.grupos         = c.grupos         || [];
+              this.orgaos         = c.orgaos         || [];
+              this.cargos         = c.cargos         || [];
+              this.ocupacoes      = c.ocupacoes      || [];
+              this.magistrados    = c.magistrados    || [];
+              this.estagiosList   = c.estagiarios    || [];
+              this.contratos      = c.contratos      || [];
+              this.vagasLoaded         = true;
+              this.vagasUltimaConsulta = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+            } else Toast.error(res.message);
+            this.$nextTick(() => lucide.createIcons());
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .getAppData(['vagas', 'setores', 'cargos', 'orgaos', 'grupos', 'ocupacoes', 'magistrados', 'gestores_setor', 'estagiarios', 'contratos']);
+      },
+
+      vagaCodigo(v) {
+        const setor = this.setores.find(s => String(s.id) === String(v.id_setor));
+        if (!setor || !v.numero_vaga) return '—';
+        return setor.sigla + String(v.numero_vaga).padStart(3, '0');
+      },
+
+      vagaSetorNome(v) {
+        const setor = this.setores.find(s => String(s.id) === String(v.id_setor));
+        return setor ? setor.nome : '—';
+      },
+
+      vagaTipoLabel(tipo) {
+        const labels = { graduacao: 'Graduação', pos_graduacao: 'Pós-Graduação', indefinido: 'Indefinido' };
+        return labels[tipo] || tipo;
+      },
+
+      vagaLotacao(v) {
+        if (v.id_cargo) {
+          const cargo = this.cargos.find(c => String(c.id) === String(v.id_cargo));
+          if (!cargo) return null;
+          const orgao = this.orgaos.find(o => String(o.id) === String(cargo.id_orgao));
+          const grupo = orgao ? this.grupos.find(g => String(g.id) === String(orgao.id_grupo)) : null;
+          return {
+            linha1: grupo?.nome || orgao?.nome || cargo.nome,
+            linha2: orgao ? orgao.nome + ' — ' + cargo.nome : null,
+          };
+        }
+        if (v.status === 'alocada') {
+          const setor = this.setores.find(s => String(s.id) === String(v.id_setor));
+          return { linha1: setor?.nome || '—', linha2: null };
+        }
+        return null;
+      },
+
+      vagaEstagiario(v) {
+        const contrato = this.contratos.find(c => String(c.id_vaga) === String(v.id) && !c.data_fim);
+        if (!contrato) return '';
+        const est = this.estagiosList.find(e => String(e.id) === String(contrato.id_estagiario));
+        return est ? est.nome : '';
+      },
+
+      vagaCargoMagistrado(cargoId) {
+        if (!cargoId) return '';
+        const ocup = this.ocupacoes.find(o => String(o.id_cargo) === String(cargoId));
+        if (!ocup) return '';
+        const mag = this.magistrados.find(m => String(m.id) === String(ocup.id_magistrado));
+        return mag ? mag.nome : '';
+      },
+
+      vagaTemContrato(v) {
+        return this.contratos.some(c => String(c.id_vaga) === String(v.id));
+      },
+
+      openViewVaga(v) {
+        this.viewVaga = { ...v };
+        this.openModal({ title: 'Detalhes da Vaga', size: 'md', contentKey: 'viewVaga', showConfirm: false, cancelLabel: 'Fechar' });
+        this.$nextTick(() => lucide.createIcons());
+      },
+
+      openAddVaga() {
+        this.novaVaga = { id_setor: '', tipo_vaga: '', descricao: '' };
+        this.openModal({ title: 'Nova Vaga', size: 'md', contentKey: 'addVaga', confirmLabel: 'Criar', onConfirm: () => this.saveAddVaga() });
+      },
+
+      saveAddVaga() {
+        if (!this.novaVaga.id_setor)  return Toast.warning('Selecione um setor.');
+        if (!this.novaVaga.tipo_vaga) return Toast.warning('Selecione o tipo de vaga.');
+        Loading.show('Salvando vaga...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              this.vagas.push(res.data);
+              this.closeModal();
+              Toast.success('Vaga criada com sucesso.');
+              this.$nextTick(() => lucide.createIcons());
+            } else Toast.error(res.message);
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .vagaCreate(this.novaVaga);
+      },
+
+      openEditVaga(v) {
+        this.editVaga = { ...v };
+        if (v.id_cargo) {
+          this.editVagaAlocacao = 'cargo';
+          const cargo = this.cargos.find(c => String(c.id) === String(v.id_cargo));
+          const orgao = cargo ? this.orgaos.find(o => String(o.id) === String(cargo.id_orgao)) : null;
+          this.editVagaCascata = { id_grupo: orgao ? orgao.id_grupo : '', id_orgao: cargo ? cargo.id_orgao : '', id_cargo: v.id_cargo };
+        } else if (v.status === 'alocada') {
+          this.editVagaAlocacao   = 'setor';
+          this.editVagaCascata    = { id_grupo: '', id_orgao: '', id_cargo: '' };
+          this.editVagaGestorAtual = this._vagaGestorAtualNome(v.id_setor);
+        } else {
+          this.editVagaAlocacao   = 'nao_alocada';
+          this.editVagaCascata    = { id_grupo: '', id_orgao: '', id_cargo: '' };
+          this.editVagaGestorAtual = '';
+        }
+        this.openModal({ title: 'Editar Vaga', size: 'lg', contentKey: 'editVaga', confirmLabel: 'Salvar', onConfirm: () => this.saveEditVaga() });
+      },
+
+      editVagaOnAlocacaoChange() {
+        if (this.editVagaAlocacao === 'nao_alocada') {
+          this.editVaga.id_cargo = '';
+          this.editVaga.status   = 'nao_alocada';
+          this.editVagaCascata   = { id_grupo: '', id_orgao: '', id_cargo: '' };
+          this.editVagaGestorAtual = '';
+        } else if (this.editVagaAlocacao === 'setor') {
+          this.editVaga.id_cargo = '';
+          this.editVaga.status   = 'alocada';
+          this.editVagaCascata   = { id_grupo: '', id_orgao: '', id_cargo: '' };
+          this.editVagaGestorAtual = this._vagaGestorAtualNome(this.editVaga.id_setor);
+        } else {
+          this.editVaga.status   = 'alocada';
+          this.editVagaGestorAtual = '';
+        }
+      },
+
+      _vagaGestorAtualNome(idSetor) {
+        const g = this.gestores_setor.find(g => String(g.id_setor) === String(idSetor) && !g.data_fim);
+        return g ? g.nome : '';
+      },
+
+      saveEditVaga() {
+        if (!this.editVaga.tipo_vaga) return Toast.warning('Selecione o tipo de vaga.');
+        if (this.editVagaAlocacao === 'cargo' && !this.editVagaCascata.id_cargo) {
+          return Toast.warning('Selecione um cargo para alocação.');
+        }
+        const payload = { ...this.editVaga };
+        if (this.editVagaAlocacao === 'cargo') {
+          payload.id_cargo = this.editVagaCascata.id_cargo;
+          payload.status   = 'alocada';
+        } else if (this.editVagaAlocacao === 'setor') {
+          payload.id_cargo = '';
+          payload.status   = 'alocada';
+        } else {
+          payload.id_cargo = '';
+          payload.status   = 'nao_alocada';
+        }
+        Loading.show('Salvando vaga...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              const idx = this.vagas.findIndex(v => v.id === this.editVaga.id);
+              if (idx !== -1) this.vagas[idx] = res.data;
+              this.closeModal();
+              Toast.success('Vaga atualizada com sucesso.');
+              this.$nextTick(() => lucide.createIcons());
+            } else Toast.error(res.message);
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .vagaUpdate(this.editVaga.id, payload);
+      },
+
+      deleteVaga(v) {
+        this.showConfirm({
+          message:      'Excluir vaga?',
+          detail:       `A vaga '${this.vagaCodigo(v)}' será removida permanentemente.`,
+          confirmLabel: 'Excluir',
+          variant:      'danger',
+          onConfirm: () => {
+            Loading.show('Excluindo vaga...');
+            google.script.run
+              .withSuccessHandler((res) => {
+                Loading.hide();
+                if (res.status === 'success') {
+                  this.vagas = this.vagas.filter(vg => vg.id !== v.id);
+                  Toast.success('Vaga excluída com sucesso.');
+                  this.$nextTick(() => lucide.createIcons());
+                } else Toast.error(res.message);
+              })
+              .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+              .vagaDelete(v.id);
+          },
+        });
+      },
+    };
+  }
+
   function configuracaoModule() {
     return {
       gerenteCPE:                 null,
@@ -725,6 +1137,8 @@
 
       pageConfig: {
         dashboard:      { title: 'Dashboard',      subtitle: 'Visão geral da aplicação' },
+        vagas:          { title: 'Vagas',          subtitle: 'Gerencie as vagas de estágio' },
+        estagiarios:    { title: 'Estagiários',    subtitle: 'Gerencie o cadastro de estagiários' },
         composicao:     { title: 'Composição',     subtitle: 'Gerencie grupos, órgãos, cargos e ocupações' },
         magistrados:    { title: 'Magistrados',    subtitle: 'Gerencie o cadastro de magistrados' },
         alertas:        { title: 'Alertas',        subtitle: 'Notificações e avisos pendentes' },
@@ -740,6 +1154,8 @@
       _buildNavItems() {
         const all = [
           { id: 'dashboard',    label: 'Dashboard',    icon: lucideIcon('layout-dashboard'), badge: null,                                    roles: null },
+          { id: 'vagas',        label: 'Vagas',        icon: lucideIcon('briefcase'),         badge: null,                                    roles: null },
+          { id: 'estagiarios',  label: 'Estagiários',  icon: lucideIcon('graduation-cap'),    badge: null,                                    roles: null },
           { id: 'magistrados',  label: 'Magistrados',  icon: lucideIcon('gavel'),             badge: null,                                    roles: null },
           { id: 'composicao',   label: 'Composição',   icon: lucideIcon('network'),           badge: null,                                    roles: null },
           { id: 'usuarios',     label: 'Usuários',     icon: lucideIcon('users'),             badge: null,                                    roles: [ROLES.ADMIN] },
@@ -758,6 +1174,8 @@
     return {
       ...composicaoModule(),
       ...magistradosModule(),
+      ...estagiariosModule(),
+      ...vagasModule(),
       ...configuracaoModule(),
       ...usersModule(),
       ...modalModule(),
@@ -773,6 +1191,8 @@
         this.initUsers();
         this.initComposicao();
         this.initMagistrados();
+        this.initEstagiarios();
+        this.initVagas();
         this.initConfiguracao();
         this.$nextTick(() => {
           lucide.createIcons();
@@ -818,6 +1238,30 @@
       },
       get magistradosPaged() {
         return ListUtils.paged(this.magistradosFiltrados, this.magistradosPage, this.magistradosPerPage);
+      },
+
+      get estagiosFiltrados() {
+        return ListUtils.filter(this.estagiosList, this.estagiariosSearch, ['nome', 'cpf'], '', '');
+      },
+      get estagiosTotalPages() {
+        return ListUtils.totalPages(this.estagiosFiltrados.length, this.estagiariosPerPage);
+      },
+      get estagiosPaged() {
+        return ListUtils.paged(this.estagiosFiltrados, this.estagiariosPage, this.estagiariosPerPage);
+      },
+
+      get vagasFiltradas() {
+        return this.vagas.filter(v => {
+          const term = this.vagasSearch.toLowerCase().trim();
+          if (!term) return true;
+          return this.vagaCodigo(v).toLowerCase().includes(term);
+        });
+      },
+      get vagasTotalPages() {
+        return ListUtils.totalPages(this.vagasFiltradas.length, this.vagasPerPage);
+      },
+      get vagasPaged() {
+        return ListUtils.paged(this.vagasFiltradas, this.vagasPage, this.vagasPerPage);
       },
     };
   }

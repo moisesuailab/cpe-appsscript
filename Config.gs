@@ -1,6 +1,6 @@
 const CONFIG = {
-  APP_NAME:     'Minha Aplicação',
-  APP_SUBTITLE: 'Subtítulo da aplicação',
+  APP_NAME:     'CPE',
+  APP_SUBTITLE: 'Central de Processos Eletrônicos',
 
   _KEYS: {
     SPREADSHEET_ID: 'SPREADSHEET_ID',
@@ -43,6 +43,9 @@ const CONFIG = {
     MAGISTRADOS:    'magistrados',
     SETORES:        'setores',
     GESTORES_SETOR: 'gestores_setor',
+    ESTAGIARIOS:    'estagiarios',
+    CONTRATOS:      'contratos',
+    VAGAS:          'vagas',
   },
 
   COLUMNS: {
@@ -54,5 +57,8 @@ const CONFIG = {
     magistrados:    ['id', 'nome', 'matricula', 'cidade'],
     setores:        ['id', 'nome', 'sigla'],
     gestores_setor: ['id', 'id_setor', 'nome', 'matricula', 'atualizado_em'],
+    estagiarios:    ['id', 'nome', 'cpf', 'email', 'matricula', 'data_nascimento', 'telefone', 'curso', 'instituicao', 'observacoes'],
+    contratos:      ['id', 'id_estagiario', 'id_vaga', 'tipo_contrato', 'data_inicio', 'data_fim'],
+    vagas:          ['id', 'numero_vaga', 'id_setor', 'id_cargo', 'tipo_vaga', 'status', 'descricao'],
   },
 };
