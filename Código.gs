@@ -3,11 +3,10 @@ function doGet(e) {
   const role  = UserService.getRole(email);
   if (!role) return render('acesso-negado', { appName: CONFIG.APP_NAME });
   return render('index', {
-    alertasCount: _getAlertasCount(),
-    userRole:     role,
-    userEmail:    email,
-    appName:      CONFIG.APP_NAME,
-    appSubtitle:  CONFIG.APP_SUBTITLE || 'Subtítulo da aplicação',
+    userRole:    role,
+    userEmail:   email,
+    appName:     CONFIG.APP_NAME,
+    appSubtitle: CONFIG.APP_SUBTITLE || 'Subtítulo da aplicação',
   });
 }
 
@@ -33,15 +32,6 @@ function getUserEmail() {
   return Session.getActiveUser().getEmail();
 }
 
-function _getAlertasCount() {
-  // TODO: substituir pelo cálculo real de alertas pendentes ou busca desse valor já computado em planilha
-  try {
-    return 101;
-  } catch (e) {
-    Utils.logError('_getAlertasCount', e);
-    return 0;
-  }
-}
 
 function hasRole(role) {
   return UserService.hasMinRole(getUserEmail(), role);
@@ -126,3 +116,14 @@ function vagaDelete(id)       { _requireRole('editor'); return VagaService.delet
 function contratoCreate(data)     { _requireRole('editor'); return ContratoService.create(data); }
 function contratoUpdate(id, data) { _requireRole('editor'); return ContratoService.update(id, data); }
 function contratoDelete(id)       { _requireRole('editor'); return ContratoService.delete(id); }
+
+// Dashboard
+function getDashboardData() {
+  try {
+    _requireAccess();
+    return DashboardService.getDashboardData();
+  } catch (error) {
+    Utils.logError('getDashboardData', error);
+    return Utils.createResponse('error', null, error.message);
+  }
+}

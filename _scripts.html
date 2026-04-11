@@ -1347,13 +1347,96 @@
     };
   }
 
+  function dashboardModule() {
+    return {
+      dashboard:                null,
+      dashboardLoaded:          false,
+      dashboardUltimaConsulta:  null,
+
+      initDashboard() {
+        this.loadDashboard();
+        window.addEventListener('app:navigate', (e) => {
+          if (e.detail.viewId === 'dashboard' && !this.dashboardLoaded) this.loadDashboard();
+        });
+      },
+
+      loadDashboard() {
+        Loading.show('Carregando dashboard...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              this.dashboard               = res.data;
+              this.dashboardLoaded         = true;
+              this.dashboardUltimaConsulta = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+              this.alertasCount = (this.dashboard.contratosVencendo30d ?? 0) + (this.dashboard.contratosVencendo60d ?? 0);
+              this._buildNavItems();
+            } else {
+              Toast.error(res.message);
+            }
+            this.$nextTick(() => lucide.createIcons());
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .getDashboardData();
+      },
+
+      dashboardPct(valor) {
+        const total = this.dashboard?.totalVagas ?? 0;
+        if (total === 0) return 0;
+        return Math.round(valor / total * 100);
+      },
+    };
+  }
+
+  function alertasModule() {
+    return {
+      alertasLoaded:         false,
+      alertasUltimaConsulta: null,
+
+      initAlertas() {
+        window.addEventListener('app:navigate', (e) => {
+          if (e.detail.viewId === 'alertas' && (!this.alertasLoaded || !this.contratosLoaded)) this.loadAlertas();
+        });
+      },
+
+      loadAlertas() {
+        if (this.contratosLoaded) {
+          this.alertasLoaded         = true;
+          this.alertasUltimaConsulta = this._agora();
+          this.$nextTick(() => lucide.createIcons());
+          return;
+        }
+        Loading.show('Carregando alertas...');
+        google.script.run
+          .withSuccessHandler((res) => {
+            Loading.hide();
+            if (res.status === 'success') {
+              const c = res.data.collections;
+              this.contratos             = c.contratos   || [];
+              this.estagiosList          = c.estagiarios || [];
+              this.vagas                 = c.vagas        || [];
+              this.setores               = c.setores      || [];
+              this.contratosLoaded       = true;
+              this.alertasLoaded         = true;
+              this.alertasUltimaConsulta = this._agora();
+            } else Toast.error(res.message);
+            this.$nextTick(() => lucide.createIcons());
+          })
+          .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
+          .getAppData(['contratos', 'estagiarios', 'vagas', 'setores']);
+      },
+    };
+  }
+
   function app() {
     return {
+      ...dashboardModule(),
       ...composicaoModule(),
       ...magistradosModule(),
       ...estagiariosModule(),
       ...vagasModule(),
       ...contratosModule(),
+      ...alertasModule(),
       ...configuracaoModule(),
       ...usersModule(),
       ...modalModule(),
@@ -1361,17 +1444,19 @@
 
       userEmail:    DATA.userEmail,
       userInitial:  DATA.userEmail.charAt(0).toUpperCase(),
-      alertasCount: DATA.alertasCount,
       userRole:     DATA.userRole,
+      alertasCount: 0,
 
       init() {
         this._buildNavItems();
+        this.initDashboard();
         this.initUsers();
         this.initComposicao();
         this.initMagistrados();
         this.initEstagiarios();
         this.initVagas();
         this.initContratos();
+        this.initAlertas();
         this.initConfiguracao();
         this.$nextTick(() => {
           lucide.createIcons();
@@ -1457,6 +1542,33 @@
       },
       get vagasPaged() {
         return ListUtils.paged(this.vagasFiltradas, this.vagasPage, this.vagasPerPage);
+      },
+
+      get alertasVencendo30() {
+        const hoje  = new Date(); hoje.setHours(0, 0, 0, 0);
+        const limite = new Date(hoje); limite.setDate(limite.getDate() + 30);
+        return this.contratos
+          .filter(c => {
+            const inicio = new Date(c.data_inicio); inicio.setHours(0, 0, 0, 0);
+            const fim    = new Date(c.data_fim);    fim.setHours(0, 0, 0, 0);
+            return inicio <= hoje && fim >= hoje && fim <= limite;
+          })
+          .sort((a, b) => new Date(a.data_fim) - new Date(b.data_fim));
+      },
+      get alertasVencendo60() {
+        const hoje   = new Date(); hoje.setHours(0, 0, 0, 0);
+        const de31   = new Date(hoje); de31.setDate(de31.getDate() + 31);
+        const limite = new Date(hoje); limite.setDate(limite.getDate() + 60);
+        return this.contratos
+          .filter(c => {
+            const inicio = new Date(c.data_inicio); inicio.setHours(0, 0, 0, 0);
+            const fim    = new Date(c.data_fim);    fim.setHours(0, 0, 0, 0);
+            return inicio <= hoje && fim >= hoje && fim >= de31 && fim <= limite;
+          })
+          .sort((a, b) => new Date(a.data_fim) - new Date(b.data_fim));
+      },
+      get alertasVagasOciosas() {
+        return this.vagas.filter(v => v.status === 'nao_alocada');
       },
     };
   }

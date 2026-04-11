@@ -46,6 +46,7 @@ const CONFIG = {
     ESTAGIARIOS:    'estagiarios',
     CONTRATOS:      'contratos',
     VAGAS:          'vagas',
+    DASHBOARD:      'dashboard',
   },
 
   COLUMNS: {

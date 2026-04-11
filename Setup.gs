@@ -20,6 +20,62 @@ const Setup = {
     }
   },
 
+  _ensureDashboard(spreadsheet) {
+    let sheet = spreadsheet.getSheetByName(CONFIG.SHEETS.DASHBOARD);
+    if (!sheet) {
+      sheet = spreadsheet.insertSheet(CONFIG.SHEETS.DASHBOARD);
+      console.log('[OK] Aba "dashboard" criada.');
+    }
+
+    if (sheet.getRange('B2').getFormula()) {
+      console.log('[OK] Aba "dashboard" ja possui formulas. Nenhuma alteracao feita.');
+      return;
+    }
+
+    const labels = [
+      'ultimoRecalculo',
+      'totalVagas',
+      'vagasOcupadas',
+      'vagasOciosas',
+      'vagasAlocadasOrgao',
+      'vagasAlocadasSetor',
+      'vagasNaoAlocadas',
+      'vagasDisponiveis',
+      'contratosAtivos',
+      'contratosVencendo30d',
+      'contratosVencendo60d',
+      'vagasGraduacao',
+      'vagasPosGraduacao',
+      'vagasIndefinidas',
+    ];
+
+    const formulas = [
+      '',
+      '=COUNTA(vagas!A2:A1000)',
+      '=SUMPRODUCT((contratos!E2:E1000<>"")*(contratos!E2:E1000<=TODAY())*(contratos!F2:F1000>=TODAY()))',
+      '=B2-B3',
+      '=COUNTIF(vagas!D2:D1000;"<>")',
+      '=COUNTIFS(vagas!F2:F1000;"alocada";vagas!D2:D1000;"")',
+      '=COUNTIF(vagas!F2:F1000;"nao_alocada")',
+      '=B2-B3',
+      '=B3',
+      '=COUNTIFS(contratos!E2:E1000;"<="&TODAY();contratos!F2:F1000;">="&TODAY();contratos!F2:F1000;"<="&(TODAY()+30))',
+      '=COUNTIFS(contratos!E2:E1000;"<="&TODAY();contratos!F2:F1000;">"&(TODAY()+30);contratos!F2:F1000;"<="&(TODAY()+60))',
+      '=COUNTIF(vagas!E2:E1000;"graduacao")',
+      '=COUNTIF(vagas!E2:E1000;"pos_graduacao")',
+      '=COUNTIF(vagas!E2:E1000;"indefinido")',
+    ];
+
+    sheet.getRange(1, 1, labels.length, 1).setValues(labels.map(l => [l]));
+
+    for (let i = 1; i < formulas.length; i++) {
+      sheet.getRange(i + 1, 2).setFormula(formulas[i]);
+    }
+
+    SpreadsheetApp.flush();
+    console.log('[OK] Aba "dashboard" configurada com labels e formulas.');
+  },
+
   _validateConfig() {
     const { spreadsheetId } = this._CONFIG;
     const errors = [];
@@ -121,6 +177,12 @@ const Setup = {
           errors.push('Falha ao criar aba ' + name + ': ' + e.message);
         }
       });
+
+      try {
+        this._ensureDashboard(spreadsheet);
+      } catch (e) {
+        errors.push('Falha ao configurar aba dashboard: ' + e.message);
+      }
 
       try {
         this._seedCPE();
@@ -249,6 +311,7 @@ const Setup = {
       CONFIG.SHEETS.ESTAGIARIOS,
       CONFIG.SHEETS.CONTRATOS,
       CONFIG.SHEETS.VAGAS,
+      CONFIG.SHEETS.DASHBOARD,
     ];
     if (spreadsheetId && sheetAccessOk) {
       try {
@@ -277,6 +340,38 @@ const Setup = {
       console.log('[AMBIENTE COM PROBLEMAS] Corrija os itens com [ERRO] e execute setupVerify() novamente.');
     }
     console.log('============================================================');
+  },
+
+  triggerRecalcularFormulas() {
+    const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    if (!spreadsheetId) {
+      console.error('[ERRO] SPREADSHEET_ID nao configurado.');
+      return;
+    }
+    const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+    const sheet = spreadsheet.getSheetByName(CONFIG.SHEETS.DASHBOARD);
+    if (!sheet) {
+      console.error('[ERRO] Aba "dashboard" nao encontrada. Execute setupInit() primeiro.');
+      return;
+    }
+    sheet.getRange('B1').setValue(new Date());
+    SpreadsheetApp.flush();
+    console.log('[OK] Dashboard recalculado em ' + new Date());
+  },
+
+  setupTrigger() {
+    const handlerName = 'triggerRecalcularFormulas';
+    const existing = ScriptApp.getProjectTriggers().find(t => t.getHandlerFunction() === handlerName);
+    if (existing) {
+      console.log('[OK] Trigger "' + handlerName + '" ja existe. Nenhuma alteracao feita.');
+      return;
+    }
+    ScriptApp.newTrigger(handlerName)
+      .timeBased()
+      .everyDays(1)
+      .atHour(0)
+      .create();
+    console.log('[OK] Trigger diario "' + handlerName + '" criado (executa entre 00h e 01h).');
   },
 
   listUsers() {
@@ -362,3 +457,5 @@ function setupUsers() { Setup.listUsers(); }
 function setupClearRolesCache() { Setup.clearRolesCache(); }
 function setupClearSheetIdProperties() { Setup.clearSheetIdProperties(); }
 function setupReset() { Setup.reset(); }
+function triggerRecalcularFormulas() { Setup.triggerRecalcularFormulas(); }
+function setupTrigger() { Setup.setupTrigger(); }
