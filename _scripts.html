@@ -1073,9 +1073,10 @@
               this.estagiosList   = c.estagiarios || [];
               this.vagas          = c.vagas        || [];
               this.setores        = c.setores      || [];
-              this.contratosLoaded         = true;
-              this.estagiariosLoaded       = true;
-              this.contratosUltimaConsulta = this._agora();
+              this.contratosLoaded           = true;
+              this.estagiariosLoaded         = true;
+              this.contratosUltimaConsulta   = this._agora();
+              this.estagiariosUltimaConsulta = this._agora();
             } else Toast.error(res.message);
             this.$nextTick(() => lucide.createIcons());
           })
@@ -1400,7 +1401,7 @@
       },
 
       _recalcularDashboard() {
-        if (!this.dashboardLoaded || !this.vagasLoaded || !this.contratosLoaded) return;
+        if (!this.dashboardLoaded || (!this.vagasLoaded && !this.contratosLoaded)) return;
         const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
         const d30  = new Date(hoje); d30.setDate(d30.getDate() + 30);
         const d60  = new Date(hoje); d60.setDate(d60.getDate() + 60);
@@ -1475,9 +1476,10 @@
               this.estagiosList          = c.estagiarios || [];
               this.vagas                 = c.vagas        || [];
               this.setores               = c.setores      || [];
-              this.contratosLoaded       = true;
-              this.alertasLoaded         = true;
-              this.alertasUltimaConsulta = this._agora();
+              this.contratosLoaded           = true;
+              this.alertasLoaded             = true;
+              this.contratosUltimaConsulta   = this._agora();
+              this.alertasUltimaConsulta     = this._agora();
             } else Toast.error(res.message);
             this.$nextTick(() => lucide.createIcons());
           })

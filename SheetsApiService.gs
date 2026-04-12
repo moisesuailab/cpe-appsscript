@@ -103,7 +103,7 @@ const SheetsApiService = {
         range,
         {
           valueInputOption: 'USER_ENTERED',
-          insertDataOption: 'INSERT_ROWS'
+          insertDataOption: 'OVERWRITE'
         }
       );
       

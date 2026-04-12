@@ -27,10 +27,8 @@ const Setup = {
       console.log('[OK] Aba "dashboard" criada.');
     }
 
-    if (sheet.getRange('B2').getFormula()) {
-      console.log('[OK] Aba "dashboard" ja possui formulas. Nenhuma alteracao feita.');
-      return;
-    }
+    sheet.getRange('B1:B' + sheet.getLastRow()).clearContent();
+    console.log('[OK] Formulas da aba "dashboard" serão reescritas.');
 
     const labels = [
       'ultimoRecalculo',
@@ -51,19 +49,19 @@ const Setup = {
 
     const formulas = [
       '',
-      '=COUNTA(vagas!A2:A1000)',
-      '=SUMPRODUCT((contratos!E2:E1000<>"")*(contratos!E2:E1000<=TODAY())*(contratos!F2:F1000>=TODAY()))',
+      '=COUNTA(vagas!A2:A)',
+      '=SUMPRODUCT((contratos!E2:E<>"")*(contratos!E2:E<=TODAY())*(contratos!F2:F>=TODAY()))',
       '=B2-B3',
-      '=COUNTIF(vagas!D2:D1000;"<>")',
-      '=COUNTIFS(vagas!F2:F1000;"alocada";vagas!D2:D1000;"")',
-      '=COUNTIF(vagas!F2:F1000;"nao_alocada")',
+      '=COUNTIF(vagas!D2:D;"<>")',
+      '=COUNTIFS(vagas!F2:F;"alocada";vagas!D2:D;"")',
+      '=COUNTIF(vagas!F2:F;"nao_alocada")',
       '=B2-B3',
       '=B3',
-      '=COUNTIFS(contratos!E2:E1000;"<="&TODAY();contratos!F2:F1000;">="&TODAY();contratos!F2:F1000;"<="&(TODAY()+30))',
-      '=COUNTIFS(contratos!E2:E1000;"<="&TODAY();contratos!F2:F1000;">"&(TODAY()+30);contratos!F2:F1000;"<="&(TODAY()+60))',
-      '=COUNTIF(vagas!E2:E1000;"graduacao")',
-      '=COUNTIF(vagas!E2:E1000;"pos_graduacao")',
-      '=COUNTIF(vagas!E2:E1000;"indefinido")',
+      '=COUNTIFS(contratos!E2:E;"<="&TODAY();contratos!F2:F;">="&TODAY();contratos!F2:F;"<="&(TODAY()+30))',
+      '=COUNTIFS(contratos!E2:E;"<="&TODAY();contratos!F2:F;">"&(TODAY()+30);contratos!F2:F;"<="&(TODAY()+60))',
+      '=COUNTIF(vagas!E2:E;"graduacao")',
+      '=COUNTIF(vagas!E2:E;"pos_graduacao")',
+      '=COUNTIF(vagas!E2:E;"indefinido")',
     ];
 
     sheet.getRange(1, 1, labels.length, 1).setValues(labels.map(l => [l]));
