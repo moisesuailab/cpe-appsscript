@@ -931,6 +931,7 @@
             Loading.hide();
             if (res.status === 'success') {
               this.vagas.push(res.data);
+              this._recalcularDashboard();
               this.closeModal();
               Toast.success('Vaga criada com sucesso.');
               this.$nextTick(() => lucide.createIcons());
@@ -1004,6 +1005,7 @@
             if (res.status === 'success') {
               const idx = this.vagas.findIndex(v => v.id === this.editVaga.id);
               if (idx !== -1) this.vagas[idx] = res.data;
+              this._recalcularDashboard();
               this.closeModal();
               Toast.success('Vaga atualizada com sucesso.');
               this.$nextTick(() => lucide.createIcons());
@@ -1026,6 +1028,7 @@
                 Loading.hide();
                 if (res.status === 'success') {
                   this.vagas = this.vagas.filter(vg => vg.id !== v.id);
+                  this._recalcularDashboard();
                   Toast.success('Vaga excluída com sucesso.');
                   this.$nextTick(() => lucide.createIcons());
                 } else Toast.error(res.message);
@@ -1149,6 +1152,7 @@
             Loading.hide();
             if (res.status === 'success') {
               this.contratos.push(res.data);
+              this._recalcularDashboard();
               this.closeModal();
               Toast.success('Contrato criado com sucesso.');
               this.$nextTick(() => lucide.createIcons());
@@ -1175,6 +1179,7 @@
             if (res.status === 'success') {
               const idx = this.contratos.findIndex(ct => ct.id === this.editContrato.id);
               if (idx !== -1) this.contratos[idx] = res.data;
+              this._recalcularDashboard();
               this.closeModal();
               Toast.success('Contrato atualizado com sucesso.');
               this.$nextTick(() => lucide.createIcons());
@@ -1198,6 +1203,7 @@
                 Loading.hide();
                 if (res.status === 'success') {
                   this.contratos = this.contratos.filter(ct => ct.id !== c.id);
+                  this._recalcularDashboard();
                   Toast.success('Contrato excluído com sucesso.');
                   this.$nextTick(() => lucide.createIcons());
                 } else Toast.error(res.message);
@@ -1391,6 +1397,52 @@
         const total = this.dashboard?.totalVagas ?? 0;
         if (total === 0) return 0;
         return Math.round(valor / total * 100);
+      },
+
+      _recalcularDashboard() {
+        if (!this.dashboardLoaded || !this.vagasLoaded || !this.contratosLoaded) return;
+        const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+        const d30  = new Date(hoje); d30.setDate(d30.getDate() + 30);
+        const d60  = new Date(hoje); d60.setDate(d60.getDate() + 60);
+
+        const totalVagas           = this.vagas.length;
+        const vagasOcupadas        = this.contratos.filter(c => {
+          const ini = new Date(c.data_inicio); ini.setHours(0, 0, 0, 0);
+          const fim = new Date(c.data_fim);    fim.setHours(0, 0, 0, 0);
+          return ini <= hoje && fim >= hoje;
+        }).length;
+        const vagasOciosas         = totalVagas - vagasOcupadas;
+        const vagasAlocadasOrgao   = this.vagas.filter(v => v.id_cargo).length;
+        const vagasAlocadasSetor   = this.vagas.filter(v => v.status === 'alocada' && !v.id_cargo).length;
+        const contratosVencendo30d = this.contratos.filter(c => {
+          const ini = new Date(c.data_inicio); ini.setHours(0, 0, 0, 0);
+          const fim = new Date(c.data_fim);    fim.setHours(0, 0, 0, 0);
+          return ini <= hoje && fim >= hoje && fim <= d30;
+        }).length;
+        const contratosVencendo60d = this.contratos.filter(c => {
+          const ini = new Date(c.data_inicio); ini.setHours(0, 0, 0, 0);
+          const fim = new Date(c.data_fim);    fim.setHours(0, 0, 0, 0);
+          return ini <= hoje && fim >= hoje && fim > d30 && fim <= d60;
+        }).length;
+        const vagasGraduacao       = this.vagas.filter(v => v.tipo_vaga === 'graduacao').length;
+        const vagasPosGraduacao    = this.vagas.filter(v => v.tipo_vaga === 'pos_graduacao').length;
+        const vagasIndefinidas     = this.vagas.filter(v => v.tipo_vaga === 'indefinido').length;
+
+        this.dashboard = {
+          ...this.dashboard,
+          totalVagas,
+          vagasOcupadas,
+          vagasOciosas,
+          vagasAlocadasOrgao,
+          vagasAlocadasSetor,
+          contratosVencendo30d,
+          contratosVencendo60d,
+          vagasGraduacao,
+          vagasPosGraduacao,
+          vagasIndefinidas,
+        };
+        this.alertasCount = this.alertasVencendo30.length + this.alertasVencendo60.length;
+        this._buildNavItems();
       },
     };
   }

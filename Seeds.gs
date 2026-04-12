@@ -954,5 +954,32 @@ function seedDadosIniciais() {
     Logger.log('[Seed] Erro em magistrados: ' + e.message);
   }
 
+  // ── 5. VAGAS ──────────────────────────────────────────────────────────────
+  try {
+    const existentes = CrudRepository.findAll(CONFIG.SHEETS.VAGAS);
+    if (existentes.length > 0) {
+      Logger.log('[Seed] vagas já possui dados, pulando.');
+    } else {
+      const setores = CrudRepository.findAll(CONFIG.SHEETS.SETORES);
+      const setorCPE = setores.find(s => s.sigla === 'CPE');
+      if (!setorCPE) {
+        Logger.log('[Seed] Setor CPE não encontrado — cadastre o setor antes de rodar o seed de vagas.');
+      } else {
+        const rows = Array.from({ length: 298 }, (_, i) => ({
+          id:          Utilities.getUuid(),
+          numero_vaga: String(i + 1).padStart(3, '0'),
+          id_setor:    setorCPE.id,
+          id_cargo:    '',
+          tipo_vaga:   'indefinido',
+          status:      'nao_alocada',
+          descricao:   '',
+        }));
+        CrudRepository.batchCreate(CONFIG.SHEETS.VAGAS, rows);
+      }
+    }
+  } catch (e) {
+    Logger.log('[Seed] Erro em vagas: ' + e.message);
+  }
+
   Logger.log('[Seed] Concluído.');
 }
