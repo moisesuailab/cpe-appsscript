@@ -46,18 +46,20 @@
 
   function usersModule() {
     return {
-      users:          [],
-      newUser:        { email: '', role: ROLES.VIEWER },
-      userSearch:     '',
-      userRoleFilter: '',
-      usersPage:      1,
-      usersPerPage:   10,
-      editingUser:    { email: '', role: ROLES.VIEWER },
+      users:                [],
+      newUser:              { email: '', role: ROLES.VIEWER },
+      userSearch:           '',
+      userRoleFilter:       '',
+      usersPage:            1,
+      usersPerPage:         10,
+      editingUser:          { email: '', role: ROLES.VIEWER },
+      usersUltimaConsulta:  null,
 
       initUsers() {
         this.$watch('userSearch',     () => { this.usersPage = 1; this.$nextTick(() => lucide.createIcons()); });
         this.$watch('userRoleFilter', () => { this.usersPage = 1; this.$nextTick(() => lucide.createIcons()); });
         this.$watch('usersPage',      () => { this.$nextTick(() => lucide.createIcons()); });
+        this.$watch('usersPerPage',   () => { this.$nextTick(() => lucide.createIcons()); });
 
         window.addEventListener('app:navigate', (e) => {
           if (e.detail.viewId === 'usuarios' && this.users.length === 0) this.loadUsers();
@@ -69,6 +71,7 @@
         google.script.run
           .withSuccessHandler((data) => {
             this.users = data || [];
+            this.usersUltimaConsulta = this._agora();
             Loading.hide();
             this.$nextTick(() => lucide.createIcons());
           })
@@ -194,8 +197,8 @@
         });
       },
 
-      loadComposicao() {
-        Loading.show('Carregando composição...');
+      loadComposicao(message = 'Carregando composição...') {
+        Loading.show(message);
         google.script.run
           .withSuccessHandler((res) => {
             Loading.hide();
@@ -544,11 +547,12 @@
       editMagistrado: { id: '', nome: '', matricula: '', cidade: '' },
 
       initMagistrados() {
-        this.$watch('magistradoSearch', () => { this.magistradosPage = 1; this.$nextTick(() => lucide.createIcons()); });
-        this.$watch('magistradosPage',  () => { this.$nextTick(() => lucide.createIcons()); });
+        this.$watch('magistradoSearch',   () => { this.magistradosPage = 1; this.$nextTick(() => lucide.createIcons()); });
+        this.$watch('magistradosPage',    () => { this.$nextTick(() => lucide.createIcons()); });
+        this.$watch('magistradosPerPage', () => { this.$nextTick(() => lucide.createIcons()); });
 
         window.addEventListener('app:navigate', (e) => {
-          if (e.detail.viewId === 'magistrados' && !this.composicaoLoaded) this.loadComposicao();
+          if (e.detail.viewId === 'magistrados' && !this.composicaoLoaded) this.loadComposicao('Carregando magistrados...');
         });
       },
 
@@ -635,8 +639,9 @@
       viewEstagiario:  { id: '', nome: '', cpf: '', email: '', matricula: '', data_nascimento: '', telefone: '', curso: '', instituicao: '', observacoes: '' },
 
       initEstagiarios() {
-        this.$watch('estagiariosSearch', () => { this.estagiariosPage = 1; this.$nextTick(() => lucide.createIcons()); });
-        this.$watch('estagiariosPage',   () => { this.$nextTick(() => lucide.createIcons()); });
+        this.$watch('estagiariosSearch',   () => { this.estagiariosPage = 1; this.$nextTick(() => lucide.createIcons()); });
+        this.$watch('estagiariosPage',     () => { this.$nextTick(() => lucide.createIcons()); });
+        this.$watch('estagiariosPerPage',  () => { this.$nextTick(() => lucide.createIcons()); });
 
         window.addEventListener('app:navigate', (e) => {
           if (e.detail.viewId === 'estagiarios' && !this.estagiariosLoaded) this.loadEstagiarios();
@@ -819,8 +824,9 @@
       editVagaGestorAtual: '',
 
       initVagas() {
-        this.$watch('vagasSearch', () => { this.vagasPage = 1; this.$nextTick(() => lucide.createIcons()); });
-        this.$watch('vagasPage',   () => { this.$nextTick(() => lucide.createIcons()); });
+        this.$watch('vagasSearch',   () => { this.vagasPage = 1; this.$nextTick(() => lucide.createIcons()); });
+        this.$watch('vagasPage',     () => { this.$nextTick(() => lucide.createIcons()); });
+        this.$watch('vagasPerPage',  () => { this.$nextTick(() => lucide.createIcons()); });
         window.addEventListener('app:navigate', (e) => {
           if (e.detail.viewId === 'vagas' && !this.vagasLoaded) this.loadVagas();
         });
@@ -1045,8 +1051,9 @@
       _contratoDataFimSugerida: '',
 
       initContratos() {
-        this.$watch('contratosSearch', () => { this.contratosPage = 1; this.$nextTick(() => lucide.createIcons()); });
-        this.$watch('contratosPage',   () => { this.$nextTick(() => lucide.createIcons()); });
+        this.$watch('contratosSearch',   () => { this.contratosPage = 1; this.$nextTick(() => lucide.createIcons()); });
+        this.$watch('contratosPage',     () => { this.$nextTick(() => lucide.createIcons()); });
+        this.$watch('contratosPerPage',  () => { this.$nextTick(() => lucide.createIcons()); });
         window.addEventListener('app:navigate', (e) => {
           if (e.detail.viewId === 'contratos' && !this.contratosLoaded) this.loadContratos();
         });

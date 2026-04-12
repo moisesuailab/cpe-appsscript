@@ -2,8 +2,13 @@
   <div class="space-y-5">
 
     <!-- Cabeçalho da página -->
-    <div class="flex flex-wrap items-start justify-between gap-3">
-      <h2 class="font-heading font-semibold text-text-main text-lg"></h2>
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <p x-show="usersUltimaConsulta" class="text-xs text-text-muted flex items-center gap-1.5">
+          <i data-lucide="clock" class="w-3 h-3"></i>
+          Atualizado em: <span x-text="usersUltimaConsulta"></span>
+        </p>
+      </div>
       <div class="flex flex-wrap gap-2 w-full sm:w-auto">
         <button class="btn-outline flex-1 sm:flex-none justify-center" @click="loadUsers()">
           <i data-lucide="refresh-cw" class="w-4 h-4"></i>
