@@ -893,7 +893,13 @@
       },
 
       vagaEstagiario(v) {
-        const contrato = this.contratos.find(c => String(c.id_vaga) === String(v.id) && !c.data_fim);
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        const contrato = this.contratos.find(c =>
+          String(c.id_vaga) === String(v.id) &&
+          new Date(c.data_inicio) <= hoje &&
+          new Date(c.data_fim) >= hoje
+        );
         if (!contrato) return '';
         const est = this.estagiosList.find(e => String(e.id) === String(contrato.id_estagiario));
         return est ? est.nome : '';
