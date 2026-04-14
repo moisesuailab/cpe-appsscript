@@ -27,7 +27,9 @@ const Setup = {
       console.log('[OK] Aba "dashboard" criada.');
     }
 
-    sheet.getRange('B1:B' + sheet.getLastRow()).clearContent();
+    if (sheet.getLastRow() > 0) {
+      sheet.getRange('B1:B' + sheet.getLastRow()).clearContent();
+    }
     console.log('[OK] Formulas da aba "dashboard" serão reescritas.');
 
     const labels = [
