@@ -1,6 +1,6 @@
 const OcupacaoService = {
 
-  _SHEET: CONFIG.SHEETS.OCUPACOES,
+  get _SHEET() { return CONFIG.SHEETS.OCUPACOES; },
 
   _rulesCreate: {
     id_cargo:      ['required'],
@@ -17,7 +17,7 @@ const OcupacaoService = {
       const cargo = cargos.find(c => String(c.id) === String(data.id_cargo));
       if (!cargo) throw new Error(`Cargo com ID '${data.id_cargo}' não encontrado.`);
 
-      // RN-NEW-02: magistrado único por órgão
+      // Magistrado único por órgão
       const idsCargosDoOrgao = cargos
         .filter(c => String(c.id_orgao) === String(cargo.id_orgao))
         .map(c => String(c.id));
@@ -28,7 +28,7 @@ const OcupacaoService = {
       );
       if (jaOcupaNaOrgao) throw new Error('Magistrado já ocupa um cargo neste órgão.');
 
-      // RN-NEW-01: 1 magistrado por cargo — deletar ocupação anterior
+      // Um magistrado por cargo — deletar ocupação anterior
       const ocupacaoAnterior = ocupacoes.find(o => String(o.id_cargo) === String(data.id_cargo));
       if (ocupacaoAnterior) CrudRepository.delete(this._SHEET, ocupacaoAnterior.id);
 

@@ -1,10 +1,3 @@
-// =============================================================================
-// Diagnostics.gs — Inspeção de estado do sistema em desenvolvimento
-//
-// Todas as funções são somente leitura. Nenhuma altera dados ou configurações.
-// Para acoes como limpar caches ou resetar o ambiente, use Setup.gs.
-// =============================================================================
-
 const Diagnostics = {
 
   config() {

@@ -1,6 +1,6 @@
 const EstagiarioService = {
 
-  _SHEET: CONFIG.SHEETS.ESTAGIARIOS,
+  get _SHEET() { return CONFIG.SHEETS.ESTAGIARIOS; },
 
   _rules: {
     nome:     ['required'],

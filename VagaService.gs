@@ -1,6 +1,6 @@
 const VagaService = {
 
-  _SHEET: CONFIG.SHEETS.VAGAS,
+  get _SHEET() { return CONFIG.SHEETS.VAGAS; },
 
   _TIPOS:   ['graduacao', 'pos_graduacao', 'indefinido'],
   _STATUS:  ['nao_alocada', 'alocada'],

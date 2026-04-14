@@ -1,6 +1,6 @@
 const GrupoService = {
 
-  _SHEET: CONFIG.SHEETS.GRUPOS,
+  get _SHEET() { return CONFIG.SHEETS.GRUPOS; },
 
   _rules: {
     nome: ['required'],

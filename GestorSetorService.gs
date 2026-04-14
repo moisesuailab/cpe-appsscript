@@ -1,6 +1,6 @@
 const GestorSetorService = {
 
-  _SHEET: CONFIG.SHEETS.GESTORES_SETOR,
+  get _SHEET() { return CONFIG.SHEETS.GESTORES_SETOR; },
 
   _rules: {
     nome:      ['required'],

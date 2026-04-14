@@ -1,6 +1,6 @@
 const CargoService = {
 
-  _SHEET:  CONFIG.SHEETS.CARGOS,
+  get _SHEET() { return CONFIG.SHEETS.CARGOS; },
   _TIPOS:  ['titular', 'suplente', 'substituto'],
 
   _rulesCreate: {

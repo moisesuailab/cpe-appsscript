@@ -1,7 +1,7 @@
 const Setup = {
 
   _CONFIG: {
-    spreadsheetId: '15HG60p43T5PjQ8Kgk94IHoGhj571oN-gSnXrR4VjbWc',
+    spreadsheetId: '', // <-- COLOQUE AQUI O ID DA PLANILHA (EXTRAIDO DA URL) E EXECUTE setupInit() PARA CONFIGURAR O AMBIENTE
   },
 
   _ensureSheet(spreadsheet, sheetName, headers) {

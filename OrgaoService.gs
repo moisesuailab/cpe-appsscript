@@ -1,6 +1,6 @@
 const OrgaoService = {
 
-  _SHEET: CONFIG.SHEETS.ORGAOS,
+  get _SHEET() { return CONFIG.SHEETS.ORGAOS; },
 
   _rulesCreate: {
     nome:     ['required'],

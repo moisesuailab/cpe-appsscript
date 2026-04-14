@@ -1,6 +1,6 @@
 const ContratoService = {
 
-  _SHEET: CONFIG.SHEETS.CONTRATOS,
+  get _SHEET() { return CONFIG.SHEETS.CONTRATOS; },
 
   _TIPOS: ['graduacao', 'pos_graduacao'],
 

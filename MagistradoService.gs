@@ -1,6 +1,6 @@
 const MagistradoService = {
 
-  _SHEET: CONFIG.SHEETS.MAGISTRADOS,
+  get _SHEET() { return CONFIG.SHEETS.MAGISTRADOS; },
 
   _rules: {
     nome:      ['required'],
