@@ -39,24 +39,36 @@ const VagaService = {
   },
 
   create(data) {
-    return EntityService.create(this._SHEET, data, this._rulesCreate, () => {
+    const result = EntityService.create(this._SHEET, data, this._rulesCreate, () => {
       this._validarConsistenciaAlocacao(data);
       const vagas = CrudRepository.findAll(this._SHEET);
       data.numero_vaga = this._nextNumeroVaga(vagas, data.id_setor);
       data.status = 'nao_alocada';
       if (!data.id_cargo) data.id_cargo = '';
     });
+    if (result.status === 'success') {
+      AppLogService.append('CREATE_VAGA', 'vagas', result.data.id, `Vaga nº ${result.data.numero_vaga} criada no setor '${data.id_setor}'.`);
+    }
+    return result;
   },
 
   update(id, data) {
-    return EntityService.update(this._SHEET, id, data, this._rulesUpdate, () => {
+    const result = EntityService.update(this._SHEET, id, data, this._rulesUpdate, () => {
       this._validarConsistenciaAlocacao(data);
     });
+    if (result.status === 'success') {
+      AppLogService.append('UPDATE_VAGA', 'vagas', id, `Vaga com ID '${id}' atualizada.`);
+    }
+    return result;
   },
 
   delete(id) {
-    return EntityService.delete(this._SHEET, id, () => {
+    const result = EntityService.delete(this._SHEET, id, () => {
       this._assertSemContratos(id);
     });
+    if (result.status === 'success') {
+      AppLogService.append('DELETE_VAGA', 'vagas', id, `Vaga com ID '${id}' excluída.`);
+    }
+    return result;
   },
 };

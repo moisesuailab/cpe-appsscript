@@ -41,7 +41,7 @@ const ContratoService = {
   },
 
   create(data) {
-    return EntityService.create(this._SHEET, data, this._rules, () => {
+    const result = EntityService.create(this._SHEET, data, this._rules, () => {
       this._assertDatas(data.data_inicio, data.data_fim);
 
       const vaga = CrudRepository.findById(CONFIG.SHEETS.VAGAS, data.id_vaga);
@@ -56,10 +56,14 @@ const ContratoService = {
         CrudRepository.update(CONFIG.SHEETS.VAGAS, data.id_vaga, { tipo_vaga: data.tipo_contrato });
       }
     });
+    if (result.status === 'success') {
+      AppLogService.append('CREATE_CONTRATO', 'contratos', result.data.id, `Contrato criado para estagiário '${data.id_estagiario}' na vaga '${data.id_vaga}'.`);
+    }
+    return result;
   },
 
   update(id, data) {
-    return EntityService.update(this._SHEET, id, data, this._rules, () => {
+    const result = EntityService.update(this._SHEET, id, data, this._rules, () => {
       this._assertDatas(data.data_inicio, data.data_fim);
 
       const vaga = CrudRepository.findById(CONFIG.SHEETS.VAGAS, data.id_vaga);
@@ -70,9 +74,17 @@ const ContratoService = {
       const contratos = CrudRepository.findAll(this._SHEET);
       this._assertSemSobreposicao(contratos, data.id_vaga, data.data_inicio, data.data_fim, id);
     });
+    if (result.status === 'success') {
+      AppLogService.append('UPDATE_CONTRATO', 'contratos', id, `Contrato com ID '${id}' atualizado.`);
+    }
+    return result;
   },
 
   delete(id) {
-    return EntityService.delete(this._SHEET, id);
+    const result = EntityService.delete(this._SHEET, id);
+    if (result.status === 'success') {
+      AppLogService.append('DELETE_CONTRATO', 'contratos', id, `Contrato com ID '${id}' excluído.`);
+    }
+    return result;
   },
 };

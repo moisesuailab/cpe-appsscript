@@ -24,30 +24,42 @@ const CargoService = {
   },
 
   create(data) {
-    return EntityService.create(this._SHEET, data, this._rulesCreate, (payload) => {
+    const result = EntityService.create(this._SHEET, data, this._rulesCreate, (payload) => {
       ValidationService.validate({ tipo: payload.tipo }, { tipo: [['inList', this._TIPOS]] });
       const cargos = CrudRepository.findAll(this._SHEET);
       this._assertNomeUnico(cargos, payload.nome, payload.id_orgao);
       payload.is_presidente = 'FALSE';
     });
+    if (result.status === 'success') {
+      AppLogService.append('CREATE_CARGO', 'cargos', result.data.id, `Cargo '${data.nome}' (${data.tipo}) criado no órgão '${data.id_orgao}'.`);
+    }
+    return result;
   },
 
   update(id, data) {
-    return EntityService.update(this._SHEET, id, data, this._rulesUpdate, () => {
+    const result = EntityService.update(this._SHEET, id, data, this._rulesUpdate, () => {
       if (data.tipo) ValidationService.validate({ tipo: data.tipo }, { tipo: [['inList', this._TIPOS]] });
       const cargo = CrudRepository.findById(this._SHEET, id);
       const idOrgao = data.id_orgao || cargo.id_orgao;
       const cargos = CrudRepository.findAll(this._SHEET);
       this._assertNomeUnico(cargos, data.nome, idOrgao, id);
     });
+    if (result.status === 'success') {
+      AppLogService.append('UPDATE_CARGO', 'cargos', id, `Cargo '${data.nome}' atualizado.`);
+    }
+    return result;
   },
 
   delete(id) {
-    return EntityService.delete(this._SHEET, id, () => {
+    const result = EntityService.delete(this._SHEET, id, () => {
       const ocupacoes = CrudRepository.findAll(CONFIG.SHEETS.OCUPACOES);
       const vinculado = ocupacoes.some(o => String(o.id_cargo) === String(id));
       if (vinculado) throw new Error('Cargo não pode ser excluído pois possui ocupações vinculadas.');
     });
+    if (result.status === 'success') {
+      AppLogService.append('DELETE_CARGO', 'cargos', id, `Cargo com ID '${id}' excluído.`);
+    }
+    return result;
   },
 
   setPresidente(id) {
@@ -66,7 +78,11 @@ const CargoService = {
         EntityService.update(this._SHEET, presidenteAtual.id, { is_presidente: 'FALSE' });
       }
 
-      return EntityService.update(this._SHEET, id, { is_presidente: 'TRUE' });
+      const result = EntityService.update(this._SHEET, id, { is_presidente: 'TRUE' });
+      if (result.status === 'success') {
+        AppLogService.append('SET_PRESIDENTE_CARGO', 'cargos', id, `Cargo com ID '${id}' definido como presidente no órgão '${cargo.id_orgao}'.`);
+      }
+      return result;
     } catch (error) {
       Utils.logError('CargoService.setPresidente', error);
       return Utils.createResponse('error', null, error.message);

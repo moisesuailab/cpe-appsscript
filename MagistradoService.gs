@@ -16,24 +16,36 @@ const MagistradoService = {
   },
 
   create(data) {
-    return EntityService.create(this._SHEET, data, this._rules, () => {
+    const result = EntityService.create(this._SHEET, data, this._rules, () => {
       const magistrados = CrudRepository.findAll(this._SHEET);
       this._assertMatriculaUnica(magistrados, data.matricula);
     });
+    if (result.status === 'success') {
+      AppLogService.append('CREATE_MAGISTRADO', 'magistrados', result.data.id, `Magistrado '${data.nome}' (Matrícula: ${data.matricula}) criado.`);
+    }
+    return result;
   },
 
   update(id, data) {
-    return EntityService.update(this._SHEET, id, data, this._rules, () => {
+    const result = EntityService.update(this._SHEET, id, data, this._rules, () => {
       const magistrados = CrudRepository.findAll(this._SHEET);
       this._assertMatriculaUnica(magistrados, data.matricula, id);
     });
+    if (result.status === 'success') {
+      AppLogService.append('UPDATE_MAGISTRADO', 'magistrados', id, `Magistrado '${data.nome}' atualizado.`);
+    }
+    return result;
   },
 
   delete(id) {
-    return EntityService.delete(this._SHEET, id, () => {
+    const result = EntityService.delete(this._SHEET, id, () => {
       const ocupacoes = CrudRepository.findAll(CONFIG.SHEETS.OCUPACOES);
       const vinculado = ocupacoes.some(o => String(o.id_magistrado) === String(id));
       if (vinculado) throw new Error('Magistrado não pode ser excluído pois possui ocupações vinculadas.');
     });
+    if (result.status === 'success') {
+      AppLogService.append('DELETE_MAGISTRADO', 'magistrados', id, `Magistrado com ID '${id}' excluído.`);
+    }
+    return result;
   },
 };

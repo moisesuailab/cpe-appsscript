@@ -12,8 +12,12 @@ const GestorSetorService = {
   },
 
   update(id, data) {
-    return EntityService.update(this._SHEET, id, data, this._rules, (_id, payload) => {
+    const result = EntityService.update(this._SHEET, id, data, this._rules, (_id, payload) => {
       payload.atualizado_em = new Date().toISOString();
     });
+    if (result.status === 'success') {
+      AppLogService.append('UPDATE_GESTOR_SETOR', 'gestores_setor', id, `Gestor do setor '${data.id_setor}' atualizado.`);
+    }
+    return result;
   },
 };
