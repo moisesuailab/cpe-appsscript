@@ -1,4 +1,5 @@
-<div class="main-content" x-show="currentView === 'composicao'" x-cloak>
+<template x-if="currentView === 'composicao' && canAdmin()">
+<div class="main-content" x-cloak>
   <div class="space-y-5">
 
     <!-- Cabeçalho -->
@@ -14,7 +15,7 @@
           <i data-lucide="refresh-cw" class="w-4 h-4"></i>
           Atualizar
         </button>
-        <template x-if="canEdit()">
+        <template x-if="canAdmin()">
           <button class="btn-primary flex-1 sm:flex-none justify-center" @click="openAddGrupo()">
             <i data-lucide="plus" class="w-4 h-4"></i>
             Novo Grupo
@@ -62,7 +63,7 @@
                 <p class="text-sm font-medium text-text-main truncate" x-text="grupo.nome"></p>
                 <p x-show="grupo.descricao" class="text-xs text-text-muted truncate" x-text="grupo.descricao"></p>
               </div>
-              <template x-if="canEdit()">
+              <template x-if="canAdmin()">
                 <div class="flex items-center gap-0.5 flex-shrink-0" @click.stop>
                   <button class="w-6 h-6 rounded flex items-center justify-center text-text-muted hover:text-primary transition-colors"
                           @click="openEditGrupo(grupo)" title="Editar grupo">
@@ -79,7 +80,7 @@
         </div>
 
         <!-- Footer -->
-        <template x-if="canEdit()">
+        <template x-if="canAdmin()">
           <div class="px-3 py-2 border-t border-border flex-shrink-0">
             <button class="w-full btn-outline py-1.5 text-sm justify-center" @click="openAddGrupo()">
               <i data-lucide="plus" class="w-3.5 h-3.5"></i>
@@ -128,7 +129,7 @@
                  :class="selectedOrgao?.id === orgao.id ? 'bg-primary/10 border-l-2 border-l-primary' : 'hover:bg-bg-light'"
                  @click="selectOrgao(orgao)">
               <p class="text-sm font-medium text-text-main truncate flex-1" x-text="orgao.nome"></p>
-              <template x-if="canEdit()">
+              <template x-if="canAdmin()">
                 <div class="flex items-center gap-0.5 flex-shrink-0" @click.stop>
                   <button class="w-6 h-6 rounded flex items-center justify-center text-text-muted hover:text-primary transition-colors"
                           @click="openEditOrgao(orgao)" title="Editar órgão">
@@ -145,7 +146,7 @@
         </div>
 
         <!-- Footer -->
-        <template x-if="canEdit() && selectedGrupo">
+        <template x-if="canAdmin() && selectedGrupo">
           <div class="px-3 py-2 border-t border-border flex-shrink-0">
             <button class="w-full btn-outline py-1.5 text-sm justify-center" @click="openAddOrgao()">
               <i data-lucide="plus" class="w-3.5 h-3.5"></i>
@@ -215,7 +216,7 @@
                 </div>
 
                 <!-- Botões: ficam ao lado quando há espaço, quebram para próxima linha se apertar -->
-                <template x-if="canEdit()">
+                <template x-if="canAdmin()">
                   <div class="flex flex-wrap gap-1 flex-shrink-0">
                     <button class="w-7 h-7 rounded border border-border flex items-center justify-center text-text-muted hover:border-primary hover:text-primary transition-all"
                             @click="openEditCargo(cargo)" title="Editar cargo">
@@ -249,7 +250,7 @@
         </div>
 
         <!-- Footer -->
-        <template x-if="canEdit() && selectedOrgao">
+        <template x-if="canAdmin() && selectedOrgao">
           <div class="px-3 py-2 border-t border-border flex-shrink-0">
             <button class="w-full btn-outline py-1.5 text-sm justify-center" @click="openAddCargo()">
               <i data-lucide="plus" class="w-3.5 h-3.5"></i>
@@ -263,3 +264,4 @@
     </div>
   </div>
 </div>
+</template>

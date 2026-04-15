@@ -1,4 +1,5 @@
-<div class="main-content" x-show="currentView === 'configuracoes'" x-cloak>
+<template x-if="currentView === 'configuracoes' && canAdmin()">
+<div class="main-content" x-cloak>
   <div class="space-y-5">
 
     <!-- Cabeçalho -->
@@ -37,7 +38,7 @@
                x-text="'Editado em: ' + (gerenteCPE.atualizado_em ? new Date(gerenteCPE.atualizado_em).toLocaleDateString('pt-BR') : '—')">
             </p>
 
-            <template x-if="canEdit()">
+            <template x-if="canAdmin()">
               <button class="btn-outline mt-4 flex items-center gap-2" @click="openEditGerente()">
                 <i data-lucide="pencil" class="w-4 h-4"></i>
                 Editar
@@ -76,3 +77,4 @@
 
   </div>
 </div>
+</template>
