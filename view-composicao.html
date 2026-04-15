@@ -27,8 +27,8 @@
     <div class="card overflow-hidden flex h-[80vh]">
 
       <!-- Painel 1 — Grupos -->
-      <div class="flex flex-col border-r border-border w-full md:w-[330px] min-w-[200px]"
-           :class="{ 'hidden md:flex': composicaoPanelLevel !== 1, 'flex': composicaoPanelLevel === 1 }">
+      <div class="flex flex-col border-r border-border w-full lg:w-[260px] xl:w-[330px]"
+           :class="{ 'hidden lg:flex': composicaoPanelLevel !== 1, 'flex': composicaoPanelLevel === 1 }">
 
         <!-- Header -->
         <div class="px-4 py-3 border-b border-border flex items-center justify-between flex-shrink-0">
@@ -91,13 +91,13 @@
       </div>
 
       <!-- Painel 2 — Órgãos -->
-      <div class="flex flex-col border-r border-border w-full md:w-[330px] min-w-[200px]"
-           :class="{ 'hidden md:flex': composicaoPanelLevel !== 2, 'flex': composicaoPanelLevel === 2 }">
+      <div class="flex flex-col border-r border-border w-full lg:w-[260px] xl:w-[330px]"
+           :class="{ 'hidden lg:flex': composicaoPanelLevel !== 2, 'flex': composicaoPanelLevel === 2 }">
 
         <!-- Header -->
         <div class="px-4 py-3 border-b border-border flex items-center justify-between flex-shrink-0">
           <div class="flex items-center gap-2">
-            <button class="md:hidden text-text-muted hover:text-primary transition-colors"
+            <button class="lg:hidden text-text-muted hover:text-primary transition-colors"
                     @click="composicaoPanelLevel = 1" title="Voltar">
               <i data-lucide="chevron-left" class="w-4 h-4"></i>
             </button>
@@ -157,13 +157,13 @@
       </div>
 
       <!-- Painel 3 — Cargos -->
-      <div class="flex flex-col flex-1 min-w-[200px]"
-           :class="{ 'hidden md:flex': composicaoPanelLevel !== 3, 'flex': composicaoPanelLevel === 3 }">
+      <div class="flex flex-col flex-1 min-w-0"
+           :class="{ 'hidden lg:flex': composicaoPanelLevel !== 3, 'flex': composicaoPanelLevel === 3 }">
 
         <!-- Header -->
         <div class="px-4 py-3 border-b border-border flex items-center justify-between flex-shrink-0">
           <div class="flex items-center gap-2">
-            <button class="md:hidden text-text-muted hover:text-primary transition-colors"
+            <button class="lg:hidden text-text-muted hover:text-primary transition-colors"
                     @click="composicaoPanelLevel = 2" title="Voltar">
               <i data-lucide="chevron-left" class="w-4 h-4"></i>
             </button>
@@ -199,55 +199,50 @@
 
           <!-- Lista de cargos -->
           <template x-for="cargo in cargosDoOrgao" :key="cargo.id">
-            <div class="px-4 py-3 border-b border-border flex items-center gap-3 hover:bg-bg-light transition-colors">
+            <div class="px-4 py-3 border-b border-border hover:bg-bg-light transition-colors">
+              <div class="flex flex-wrap items-start gap-x-2 gap-y-1">
 
-              <!-- Info do cargo -->
-              <div class="flex-1 min-w-0">
-                <div class="flex flex-wrap items-center gap-1.5 mb-0.5">
-                  <span class="text-sm font-medium text-text-main" x-text="cargo.nome"></span>
-                  <span class="badge text-xs"
-                        :class="{
-                          'badge-primary': cargo.tipo === 'titular',
-                          'badge-info':    cargo.tipo === 'suplente',
-                          'badge-warning': cargo.tipo === 'substituto'
-                        }"
-                        x-text="cargo.tipo"></span>
-                  <span x-show="cargo.is_presidente === 'TRUE'" class="badge badge-success text-xs">Presidente</span>
+                <!-- Info: cargo + magistrado (cresce, empurra botões para direita ou quebra) -->
+                <div class="flex flex-col gap-0.5 flex-1 min-w-[170px]">
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <span class="text-sm font-medium text-text-main truncate" x-text="cargo.nome"></span>
+                    <span x-show="cargo.is_presidente === 'TRUE'" class="badge badge-success text-xs flex-shrink-0">Presidente</span>
+                  </div>
+                  <p class="text-xs text-text-muted truncate">
+                    <span x-show="getOcupacaoAtiva(cargo.id)" x-text="getMagistradoNome(getOcupacaoAtiva(cargo.id)?.id_magistrado)"></span>
+                    <span x-show="!getOcupacaoAtiva(cargo.id)" class="italic">Vago</span>
+                  </p>
                 </div>
-                <p class="text-xs text-text-muted">
-                  <span x-show="getOcupacaoAtiva(cargo.id)" x-text="getMagistradoNome(getOcupacaoAtiva(cargo.id)?.id_magistrado)"></span>
-                  <span x-show="!getOcupacaoAtiva(cargo.id)" class="italic">Vago</span>
-                </p>
+
+                <!-- Botões: ficam ao lado quando há espaço, quebram para próxima linha se apertar -->
+                <template x-if="canEdit()">
+                  <div class="flex flex-wrap gap-1 flex-shrink-0">
+                    <button class="w-7 h-7 rounded border border-border flex items-center justify-center text-text-muted hover:border-primary hover:text-primary transition-all"
+                            @click="openEditCargo(cargo)" title="Editar cargo">
+                      <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                    </button>
+                    <button class="w-7 h-7 rounded border border-border flex items-center justify-center text-text-muted hover:border-red-300 hover:text-red-500 transition-all"
+                            @click="deleteCargo(cargo)" title="Excluir cargo">
+                      <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                    <button x-show="cargo.is_presidente !== 'TRUE'"
+                            class="w-7 h-7 rounded border border-border flex items-center justify-center text-text-muted hover:border-warning hover:text-warning transition-all"
+                            @click="setCargoPresidente(cargo)" title="Marcar como presidente">
+                      <i data-lucide="award" class="w-3.5 h-3.5"></i>
+                    </button>
+                    <button class="w-7 h-7 rounded border border-border flex items-center justify-center text-text-muted hover:border-success hover:text-success transition-all"
+                            @click="openVincularMagistrado(cargo)" title="Vincular magistrado">
+                      <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+                    </button>
+                    <button x-show="getOcupacaoAtiva(cargo.id)"
+                            class="w-7 h-7 rounded border border-border flex items-center justify-center text-text-muted hover:border-danger hover:text-danger transition-all"
+                            @click="removerMagistrado(cargo)" title="Remover magistrado">
+                      <i data-lucide="user-minus" class="w-3.5 h-3.5"></i>
+                    </button>
+                  </div>
+                </template>
+
               </div>
-
-              <!-- Ações -->
-              <template x-if="canEdit()">
-                <div class="flex items-center gap-1 flex-shrink-0">
-                  <button class="w-7 h-7 rounded border border-border flex items-center justify-center text-text-muted hover:border-primary hover:text-primary transition-all"
-                          @click="openEditCargo(cargo)" title="Editar cargo">
-                    <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
-                  </button>
-                  <button class="w-7 h-7 rounded border border-border flex items-center justify-center text-text-muted hover:border-red-300 hover:text-red-500 transition-all"
-                          @click="deleteCargo(cargo)" title="Excluir cargo">
-                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                  </button>
-                  <button x-show="cargo.is_presidente !== 'TRUE'"
-                          class="w-7 h-7 rounded border border-border flex items-center justify-center text-text-muted hover:border-warning hover:text-warning transition-all"
-                          @click="setCargoPresidente(cargo)" title="Marcar como presidente">
-                    <i data-lucide="award" class="w-3.5 h-3.5"></i>
-                  </button>
-                  <button class="w-7 h-7 rounded border border-border flex items-center justify-center text-text-muted hover:border-success hover:text-success transition-all"
-                          @click="openVincularMagistrado(cargo)" title="Vincular magistrado">
-                    <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
-                  </button>
-                  <button x-show="getOcupacaoAtiva(cargo.id)"
-                          class="w-7 h-7 rounded border border-border flex items-center justify-center text-text-muted hover:border-danger hover:text-danger transition-all"
-                          @click="removerMagistrado(cargo)" title="Remover magistrado">
-                    <i data-lucide="user-minus" class="w-3.5 h-3.5"></i>
-                  </button>
-                </div>
-              </template>
-
             </div>
           </template>
 
