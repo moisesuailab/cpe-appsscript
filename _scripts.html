@@ -1103,11 +1103,48 @@
         return setor.sigla + String(v.numero_vaga).padStart(3, '0');
       },
 
+      contratoVagaEstado(v) {
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        const temAtivo = this.contratos.some(c => {
+          if (String(c.id_vaga) !== String(v.id)) return false;
+          const inicio = new Date(c.data_inicio);
+          const fim    = new Date(c.data_fim);
+          return inicio <= hoje && fim >= hoje;
+        });
+        if (temAtivo) return 'ocupada';
+        const temReservada = this.contratos.some(c => {
+          if (String(c.id_vaga) !== String(v.id)) return false;
+          return new Date(c.data_inicio) > hoje;
+        });
+        return temReservada ? 'reservada' : 'livre';
+      },
+
       contratoVagaOpcaoLabel(v) {
         const setor = this.setores.find(s => String(s.id) === String(v.id_setor));
         const codigo = setor ? setor.sigla + String(v.numero_vaga).padStart(3, '0') : '—';
         const tipoLabels = { graduacao: 'Graduação', pos_graduacao: 'Pós-Graduação', indefinido: 'Indefinido' };
-        return `${codigo} — ${tipoLabels[v.tipo_vaga] || v.tipo_vaga}`;
+        const estadoSufixo = { ocupada: ' (Ocupada)', reservada: ' (Com reserva)', livre: '' };
+        const estado = this.contratoVagaEstado(v);
+        return `${codigo} — ${tipoLabels[v.tipo_vaga] || v.tipo_vaga}${estadoSufixo[estado]}`;
+      },
+
+      contratoTiposParaVaga(idVaga) {
+        const todos = [
+          { value: 'graduacao',    label: 'Graduação' },
+          { value: 'pos_graduacao', label: 'Pós-Graduação' },
+        ];
+        if (!idVaga) return todos;
+        const vaga = this.vagas.find(v => String(v.id) === String(idVaga));
+        if (!vaga || vaga.tipo_vaga === 'indefinido') return todos;
+        return todos.filter(t => t.value === vaga.tipo_vaga);
+      },
+
+      contratoOnVagaChange(modo) {
+        const obj = modo === 'novo' ? this.novoContrato : this.editContrato;
+        const tipos = this.contratoTiposParaVaga(obj.id_vaga);
+        obj.tipo_contrato = tipos.length === 1 ? tipos[0].value : '';
+        this.contratoSugerirDataFim(modo);
       },
 
       contratoStatus(c) {
@@ -1115,7 +1152,8 @@
         hoje.setHours(0, 0, 0, 0);
         const inicio = new Date(c.data_inicio);
         const fim    = new Date(c.data_fim);
-        if (inicio <= hoje && fim >= hoje) return 'Ativo';
+        if (inicio > hoje) return 'Não iniciado';
+        if (fim >= hoje)   return 'Ativo';
         return 'Encerrado';
       },
 

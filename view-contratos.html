@@ -89,9 +89,11 @@
             <!-- Status calculado -->
             <div class="w-24 flex-shrink-0">
               <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-                    :class="contratoStatus(c) === 'Ativo'
-                      ? 'bg-green-50 text-green-700'
-                      : 'bg-gray-100 text-gray-500'"
+                    :class="{
+                      'bg-green-50 text-green-700':  contratoStatus(c) === 'Ativo',
+                      'bg-amber-50 text-amber-700':  contratoStatus(c) === 'Não iniciado',
+                      'bg-gray-100 text-gray-500':   contratoStatus(c) === 'Encerrado'
+                    }"
                     x-text="contratoStatus(c)">
               </span>
             </div>
