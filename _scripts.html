@@ -1402,8 +1402,8 @@
 
       dashboardPct(valor) {
         const total = this.dashboard?.totalVagas ?? 0;
-        if (total === 0) return 0;
-        return Math.round(valor / total * 100);
+        if (total === 0) return '0.00';
+        return (valor / total * 100).toFixed(2);
       },
 
       _recalcularDashboard() {

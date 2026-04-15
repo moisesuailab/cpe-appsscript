@@ -724,4 +724,25 @@
     background: #fc8181;
     box-shadow: 0 2px 8px rgba(197, 48, 48, 0.3);
   }
+
+  /* ── Dashboard ───────────────────────────────────────── */
+
+  /* Oculta label "Atualizar" em telas muito pequenas (breakpoint não disponível no Tailwind padrão) */
+  @media (max-width: 400px) {
+    .db-refresh-label { display: none; }
+  }
+
+  /* Variantes de cor semântica para ícones dos KPI cards */
+  .db-kpi-icon-neutral { background: #EDF2F7; color: #4A5568; }
+  .db-kpi-icon-success { background: #E6F6EE; color: #276749; }
+  .db-kpi-icon-warning { background: #FFF8EE; color: #c05621; }
+  .db-kpi-icon-info    { background: #EEF4FF; color: #2b6cb0; }
+  .db-kpi-icon-primary { background: #E8F3FC; color: #2b6cb0; }
+
+  /* Barra de distribuição com easing spring (não disponível via Tailwind sem config customizada) */
+  .db-dist-bar {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
 </style>
