@@ -548,8 +548,9 @@
       magistradosPage:    1,
       magistradosPerPage: 10,
 
-      novoMagistrado: { nome: '', matricula: '', cidade: '' },
-      editMagistrado: { id: '', nome: '', matricula: '', cidade: '' },
+      novoMagistrado:  { nome: '', matricula: '', cidade: '' },
+      editMagistrado:  { id: '', nome: '', matricula: '', cidade: '' },
+      viewMagistrado:  { id: '', nome: '', matricula: '', cidade: '' },
 
       initMagistrados() {
         ['magistradoSearch', 'magistradosSortBy', 'magistradosSortDir'].forEach(w => {
@@ -561,6 +562,12 @@
         window.addEventListener('app:navigate', (e) => {
           if (e.detail.viewId === 'magistrados' && !this.composicaoLoaded) this.loadComposicao('Carregando magistrados...');
         });
+      },
+
+      openViewMagistrado(magistrado) {
+        this.viewMagistrado = { ...magistrado };
+        this.openModal({ title: 'Detalhes do Magistrado', size: 'sm', contentKey: 'viewMagistrado', showConfirm: false, cancelLabel: 'Fechar' });
+        this.$nextTick(() => lucide.createIcons());
       },
 
       openAddMagistrado() {
