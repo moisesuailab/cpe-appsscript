@@ -1534,6 +1534,7 @@
     return {
       alertasLoaded:         false,
       alertasUltimaConsulta: null,
+      alertasFiltroTipo:     '',
 
       initAlertas() {
         window.addEventListener('app:navigate', (e) => {
@@ -1567,6 +1568,16 @@
           })
           .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
           .getAppData(['contratos', 'estagiarios', 'vagas', 'setores']);
+      },
+
+      irParaContrato(c) {
+        this.contratosSearch = this.contratoEstagiarioNome(c);
+        this.navigate('contratos');
+      },
+
+      setAlertaFiltro(tipo) {
+        this.alertasFiltroTipo = this.alertasFiltroTipo === tipo ? '' : tipo;
+        this.$nextTick(() => lucide.createIcons());
       },
     };
   }
@@ -1813,6 +1824,17 @@
       },
       get alertasVagasOciosas() {
         return this.vagas.filter(v => v.status === 'nao_alocada');
+      },
+      get alertasFiltrados() {
+        const tipo = this.alertasFiltroTipo;
+        if (tipo === '30d')     return this.alertasVencendo30.map(c => ({ _tipo: '30d',    ...c }));
+        if (tipo === '60d')     return this.alertasVencendo60.map(c => ({ _tipo: '60d',    ...c }));
+        if (tipo === 'ociosas') return this.alertasVagasOciosas.map(v => ({ _tipo: 'ociosa', ...v }));
+        return [
+          ...this.alertasVencendo30.map(c => ({ _tipo: '30d',    ...c })),
+          ...this.alertasVencendo60.map(c => ({ _tipo: '60d',    ...c })),
+          ...this.alertasVagasOciosas.map(v => ({ _tipo: 'ociosa', ...v })),
+        ];
       },
     };
   }
