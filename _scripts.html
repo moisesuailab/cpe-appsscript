@@ -1383,6 +1383,7 @@
       navigate(viewId) {
         this.currentView = viewId;
         window.dispatchEvent(new CustomEvent('app:navigate', { detail: { viewId } }));
+        this.$nextTick(() => lucide.createIcons());
       },
 
       _buildNavItems() {
