@@ -773,6 +773,13 @@
         return d.replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d{1,4})$/, '$1-$2');
       },
 
+      _formatDate(value) {
+        if (!value) return '';
+        const parts = String(value).split('-');
+        if (parts.length !== 3) return value;
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      },
+
       _stripMask(value) {
         return value ? String(value).replace(/\D/g, '') : '';
       },
@@ -813,6 +820,10 @@
       vagasLoaded:         false,
       vagasUltimaConsulta: null,
       vagasSearch:         '',
+      vagasFiltroTipo:     '',
+      vagasFiltroStatus:   '',
+      vagasSortBy:         'codigo',
+      vagasSortDir:        'asc',
       vagasPage:           1,
       vagasPerPage:        10,
 
@@ -824,7 +835,9 @@
       editVagaGestorAtual: '',
 
       initVagas() {
-        this.$watch('vagasSearch',   () => { this.vagasPage = 1; this.$nextTick(() => lucide.createIcons()); });
+        ['vagasSearch', 'vagasFiltroTipo', 'vagasFiltroStatus', 'vagasSortBy', 'vagasSortDir'].forEach(w => {
+          this.$watch(w, () => { this.vagasPage = 1; this.$nextTick(() => lucide.createIcons()); });
+        });
         this.$watch('vagasPage',     () => { this.$nextTick(() => lucide.createIcons()); });
         this.$watch('vagasPerPage',  () => { this.$nextTick(() => lucide.createIcons()); });
         window.addEventListener('app:navigate', (e) => {
@@ -1637,11 +1650,43 @@
       },
 
       get vagasFiltradas() {
-        return this.vagas.filter(v => {
-          const term = this.vagasSearch.toLowerCase().trim();
-          if (!term) return true;
-          return this.vagaCodigo(v).toLowerCase().includes(term);
+        const term   = this.vagasSearch.toLowerCase().trim();
+        const tipo   = this.vagasFiltroTipo;
+        const status = this.vagasFiltroStatus;
+        const sortBy = this.vagasSortBy;
+        const sortDir = this.vagasSortDir;
+
+        const result = this.vagas.filter(v => {
+          if (tipo   && v.tipo_vaga !== tipo)   return false;
+          if (status && v.status   !== status)  return false;
+          if (term) {
+            const codigo     = this.vagaCodigo(v).toLowerCase();
+            const estagiario = (this.vagaEstagiario(v) || '').toLowerCase();
+            const lotacao    = (this.vagaLotacao(v) ? (this.vagaLotacao(v).linha1 + ' ' + (this.vagaLotacao(v).linha2 || '')) : '').toLowerCase();
+            if (!codigo.includes(term) && !estagiario.includes(term) && !lotacao.includes(term)) return false;
+          }
+          return true;
         });
+
+        result.sort((a, b) => {
+          let va = '', vb = '';
+          if (sortBy === 'codigo') {
+            va = this.vagaCodigo(a);
+            vb = this.vagaCodigo(b);
+          } else if (sortBy === 'estagiario') {
+            va = this.vagaEstagiario(a) || '';
+            vb = this.vagaEstagiario(b) || '';
+          }
+          const vaVazio = !va || va === '—';
+          const vbVazio = !vb || vb === '—';
+          if (vaVazio && vbVazio) return 0;
+          if (vaVazio) return 1;
+          if (vbVazio) return -1;
+          const cmp = va.localeCompare(vb, 'pt-BR', { sensitivity: 'base' });
+          return sortDir === 'asc' ? cmp : -cmp;
+        });
+
+        return result;
       },
       get vagasTotalPages() {
         return ListUtils.totalPages(this.vagasFiltradas.length, this.vagasPerPage);

@@ -313,7 +313,7 @@
         </div>
         <div>
           <p class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-0.5">Data de Nascimento</p>
-          <p class="text-sm text-text-main" x-text="viewEstagiario.data_nascimento || '—'"></p>
+          <p class="text-sm text-text-main" x-text="_formatDate(viewEstagiario.data_nascimento) || '—'"></p>
         </div>
         <div>
           <p class="text-xs font-semibold text-text-muted uppercase tracking-wide mb-0.5">Telefone</p>
