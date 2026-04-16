@@ -31,7 +31,13 @@
         <input type="text"
                x-model="magistradoSearch"
                placeholder="Buscar por nome ou matrícula..."
-               class="form-input pl-9 w-full" />
+               class="form-input pl-9 pr-9 w-full" />
+        <button type="button"
+                x-show="magistradoSearch"
+                @click="magistradoSearch = ''"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-main transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
       </div>
     </div>
 

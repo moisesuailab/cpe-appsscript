@@ -31,7 +31,13 @@
           <input type="text"
                  x-model="vagasSearch"
                  placeholder="Buscar por código, estagiário ou lotação..."
-                 class="form-input pl-9 w-full" />
+                 class="form-input pl-9 pr-9 w-full" />
+          <button type="button"
+                  x-show="vagasSearch"
+                  @click="vagasSearch = ''"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-main transition-colors">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
         </div>
         <select x-model="vagasFiltroTipo" class="select-input sm:w-44">
           <option value="">Todos os tipos</option>
@@ -45,6 +51,40 @@
           <option value="nao_alocada">Não alocada</option>
         </select>
       </div>
+    </div>
+
+    <!-- Badges de filtros ativos -->
+    <div x-show="vagasSearch || vagasFiltroTipo || vagasFiltroStatus"
+         class="flex flex-wrap items-center gap-2">
+      <button type="button"
+              @click="vagasSearch = ''; vagasFiltroTipo = ''; vagasFiltroStatus = ''"
+              class="btn-outline text-xs py-1 px-2.5">
+        Limpar filtros
+      </button>
+      <template x-if="vagasSearch">
+        <span class="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+          <span x-text="'Busca: ' + vagasSearch"></span>
+          <button type="button" @click="vagasSearch = ''">
+            <i data-lucide="x" class="w-3 h-3"></i>
+          </button>
+        </span>
+      </template>
+      <template x-if="vagasFiltroTipo">
+        <span class="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+          <span x-text="'Tipo: ' + ({ graduacao: 'Graduação', pos_graduacao: 'Pós-Graduação', indefinido: 'Indefinido' }[vagasFiltroTipo] || vagasFiltroTipo)"></span>
+          <button type="button" @click="vagasFiltroTipo = ''">
+            <i data-lucide="x" class="w-3 h-3"></i>
+          </button>
+        </span>
+      </template>
+      <template x-if="vagasFiltroStatus">
+        <span class="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+          <span x-text="'Status: ' + ({ alocada: 'Alocada', nao_alocada: 'Não alocada' }[vagasFiltroStatus] || vagasFiltroStatus)"></span>
+          <button type="button" @click="vagasFiltroStatus = ''">
+            <i data-lucide="x" class="w-3 h-3"></i>
+          </button>
+        </span>
+      </template>
     </div>
 
     <!-- Card principal -->

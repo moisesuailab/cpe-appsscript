@@ -93,7 +93,7 @@
       </template>
 
       <!-- Itens do feed — único root por iteração para compatibilidade com x-for do Alpine -->
-      <template x-for="item in alertasFiltrados" :key="item._tipo + '_' + item.id">
+      <template x-for="item in alertasPaged" :key="item._tipo + '_' + item.id">
         <div class="card px-4 py-3.5 flex items-center gap-3 border-l-[3px]"
              :class="{
                'border-l-danger':   item._tipo === '30d',
@@ -157,6 +157,55 @@
         </div>
       </template>
 
+    </div>
+
+    <!-- Rodapé de paginação -->
+    <div class="card px-5 py-3 flex flex-col sm:flex-row items-center justify-between gap-3"
+         x-show="alertasFiltrados.length > 0">
+      <div class="flex items-center gap-2 text-xs text-text-muted">
+        <strong x-text="alertasFiltrados.length"></strong>
+        <span x-text="alertasFiltrados.length === 1 ? 'registro' : 'registros'"></span>
+        <span class="text-border">·</span>
+        <span>Exibindo</span>
+        <select x-model.number="alertasPerPage"
+                @change="alertasPage = 1"
+                class="select-input text-xs py-1 px-2 w-16">
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+        </select>
+        <span>por página</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <button class="w-7 h-7 rounded border border-border flex items-center justify-center
+                       text-text-muted hover:border-primary hover:text-primary transition-all
+                       disabled:opacity-30 disabled:cursor-not-allowed"
+                :disabled="alertasPage === 1" @click="alertasPage = 1" title="Primeira página">
+          <i data-lucide="chevrons-left" class="w-3.5 h-3.5"></i>
+        </button>
+        <button class="w-7 h-7 rounded border border-border flex items-center justify-center
+                       text-text-muted hover:border-primary hover:text-primary transition-all
+                       disabled:opacity-30 disabled:cursor-not-allowed"
+                :disabled="alertasPage === 1" @click="alertasPage--" title="Anterior">
+          <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+        </button>
+        <span class="text-xs text-text-muted px-2">
+          <strong x-text="alertasPage"></strong> / <strong x-text="alertasTotalPages"></strong>
+        </span>
+        <button class="w-7 h-7 rounded border border-border flex items-center justify-center
+                       text-text-muted hover:border-primary hover:text-primary transition-all
+                       disabled:opacity-30 disabled:cursor-not-allowed"
+                :disabled="alertasPage === alertasTotalPages" @click="alertasPage++" title="Próxima">
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+        </button>
+        <button class="w-7 h-7 rounded border border-border flex items-center justify-center
+                       text-text-muted hover:border-primary hover:text-primary transition-all
+                       disabled:opacity-30 disabled:cursor-not-allowed"
+                :disabled="alertasPage === alertasTotalPages" @click="alertasPage = alertasTotalPages" title="Última">
+          <i data-lucide="chevrons-right" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
     </div>
 
   </div>

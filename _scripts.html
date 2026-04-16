@@ -1535,8 +1535,12 @@
       alertasLoaded:         false,
       alertasUltimaConsulta: null,
       alertasFiltroTipo:     '',
+      alertasPage:           1,
+      alertasPerPage:        10,
 
       initAlertas() {
+        this.$watch('alertasPage',    () => { this.$nextTick(() => lucide.createIcons()); });
+        this.$watch('alertasPerPage', () => { this.$nextTick(() => lucide.createIcons()); });
         window.addEventListener('app:navigate', (e) => {
           if (e.detail.viewId === 'alertas' && (!this.alertasLoaded || !this.contratosLoaded)) this.loadAlertas();
         });
@@ -1577,6 +1581,7 @@
 
       setAlertaFiltro(tipo) {
         this.alertasFiltroTipo = this.alertasFiltroTipo === tipo ? '' : tipo;
+        this.alertasPage = 1;
         this.$nextTick(() => lucide.createIcons());
       },
     };
@@ -1835,6 +1840,12 @@
           ...this.alertasVencendo60.map(c => ({ _tipo: '60d',    ...c })),
           ...this.alertasVagasOciosas.map(v => ({ _tipo: 'ociosa', ...v })),
         ];
+      },
+      get alertasTotalPages() {
+        return ListUtils.totalPages(this.alertasFiltrados.length, this.alertasPerPage);
+      },
+      get alertasPaged() {
+        return ListUtils.paged(this.alertasFiltrados, this.alertasPage, this.alertasPerPage);
       },
     };
   }

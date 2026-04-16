@@ -31,7 +31,13 @@
           <input type="text"
                  x-model="contratosSearch"
                  placeholder="Buscar por estagiário ou código da vaga..."
-                 class="form-input pl-9 w-full" />
+                 class="form-input pl-9 pr-9 w-full" />
+          <button type="button"
+                  x-show="contratosSearch"
+                  @click="contratosSearch = ''"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-main transition-colors">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
         </div>
         <select x-model="contratosFiltroStatus" class="select-input sm:w-44">
           <option value="">Todos os status</option>
@@ -45,6 +51,40 @@
           <option value="pos_graduacao">Pós-Graduação</option>
         </select>
       </div>
+    </div>
+
+    <!-- Badges de filtros ativos -->
+    <div x-show="contratosSearch || contratosFiltroStatus || contratosFiltroTipo"
+         class="flex flex-wrap items-center gap-2">
+      <button type="button"
+              @click="contratosSearch = ''; contratosFiltroStatus = ''; contratosFiltroTipo = ''"
+              class="btn-outline text-xs py-1 px-2.5">
+        Limpar filtros
+      </button>
+      <template x-if="contratosSearch">
+        <span class="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+          <span x-text="'Busca: ' + contratosSearch"></span>
+          <button type="button" @click="contratosSearch = ''">
+            <i data-lucide="x" class="w-3 h-3"></i>
+          </button>
+        </span>
+      </template>
+      <template x-if="contratosFiltroStatus">
+        <span class="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+          <span x-text="'Status: ' + contratosFiltroStatus"></span>
+          <button type="button" @click="contratosFiltroStatus = ''">
+            <i data-lucide="x" class="w-3 h-3"></i>
+          </button>
+        </span>
+      </template>
+      <template x-if="contratosFiltroTipo">
+        <span class="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+          <span x-text="'Tipo: ' + ({ graduacao: 'Graduação', pos_graduacao: 'Pós-Graduação' }[contratosFiltroTipo] || contratosFiltroTipo)"></span>
+          <button type="button" @click="contratosFiltroTipo = ''">
+            <i data-lucide="x" class="w-3 h-3"></i>
+          </button>
+        </span>
+      </template>
     </div>
 
     <!-- Card principal -->

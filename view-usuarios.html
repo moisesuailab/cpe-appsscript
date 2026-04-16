@@ -36,7 +36,13 @@
           <input type="text"
                  x-model="userSearch"
                  placeholder="Buscar por e-mail..."
-                 class="form-input pl-9 w-full" />
+                 class="form-input pl-9 pr-9 w-full" />
+          <button type="button"
+                  x-show="userSearch"
+                  @click="userSearch = ''"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-main transition-colors">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
         </div>
         <select x-model="userRoleFilter" class="select-input w-full sm:w-44">
           <option value="">Todos os perfis</option>
@@ -45,6 +51,32 @@
           <option value="viewer">Visualizador</option>
         </select>
       </div>
+    </div>
+
+    <!-- Badges de filtros ativos -->
+    <div x-show="userSearch || userRoleFilter"
+         class="flex flex-wrap items-center gap-2">
+      <button type="button"
+              @click="userSearch = ''; userRoleFilter = ''"
+              class="btn-outline text-xs py-1 px-2.5">
+        Limpar filtros
+      </button>
+      <template x-if="userSearch">
+        <span class="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+          <span x-text="'Busca: ' + userSearch"></span>
+          <button type="button" @click="userSearch = ''">
+            <i data-lucide="x" class="w-3 h-3"></i>
+          </button>
+        </span>
+      </template>
+      <template x-if="userRoleFilter">
+        <span class="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+          <span x-text="'Perfil: ' + ({ admin: 'Admin', editor: 'Editor', viewer: 'Visualizador' }[userRoleFilter] || userRoleFilter)"></span>
+          <button type="button" @click="userRoleFilter = ''">
+            <i data-lucide="x" class="w-3 h-3"></i>
+          </button>
+        </span>
+      </template>
     </div>
 
     <!-- Card principal -->
