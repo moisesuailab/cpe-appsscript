@@ -50,16 +50,19 @@
       newUser:              { email: '', role: ROLES.VIEWER },
       userSearch:           '',
       userRoleFilter:       '',
+      usersSortBy:          'email',
+      usersSortDir:         'asc',
       usersPage:            1,
       usersPerPage:         10,
       editingUser:          { email: '', role: ROLES.VIEWER },
       usersUltimaConsulta:  null,
 
       initUsers() {
-        this.$watch('userSearch',     () => { this.usersPage = 1; this.$nextTick(() => lucide.createIcons()); });
-        this.$watch('userRoleFilter', () => { this.usersPage = 1; this.$nextTick(() => lucide.createIcons()); });
-        this.$watch('usersPage',      () => { this.$nextTick(() => lucide.createIcons()); });
-        this.$watch('usersPerPage',   () => { this.$nextTick(() => lucide.createIcons()); });
+        ['userSearch', 'userRoleFilter', 'usersSortBy', 'usersSortDir'].forEach(w => {
+          this.$watch(w, () => { this.usersPage = 1; this.$nextTick(() => lucide.createIcons()); });
+        });
+        this.$watch('usersPage',    () => { this.$nextTick(() => lucide.createIcons()); });
+        this.$watch('usersPerPage', () => { this.$nextTick(() => lucide.createIcons()); });
 
         window.addEventListener('app:navigate', (e) => {
           if (e.detail.viewId === 'usuarios' && this.users.length === 0) this.loadUsers();
@@ -540,6 +543,8 @@
   function magistradosModule() {
     return {
       magistradoSearch:   '',
+      magistradosSortBy:  'nome',
+      magistradosSortDir: 'asc',
       magistradosPage:    1,
       magistradosPerPage: 10,
 
@@ -547,7 +552,9 @@
       editMagistrado: { id: '', nome: '', matricula: '', cidade: '' },
 
       initMagistrados() {
-        this.$watch('magistradoSearch',   () => { this.magistradosPage = 1; this.$nextTick(() => lucide.createIcons()); });
+        ['magistradoSearch', 'magistradosSortBy', 'magistradosSortDir'].forEach(w => {
+          this.$watch(w, () => { this.magistradosPage = 1; this.$nextTick(() => lucide.createIcons()); });
+        });
         this.$watch('magistradosPage',    () => { this.$nextTick(() => lucide.createIcons()); });
         this.$watch('magistradosPerPage', () => { this.$nextTick(() => lucide.createIcons()); });
 
@@ -631,6 +638,8 @@
       estagiariosLoaded:         false,
       estagiariosUltimaConsulta: null,
       estagiariosSearch:         '',
+      estagiosSortBy:            'nome',
+      estagiosSortDir:           'asc',
       estagiariosPage:           1,
       estagiariosPerPage:        10,
 
@@ -639,7 +648,9 @@
       viewEstagiario:  { id: '', nome: '', cpf: '', email: '', matricula: '', data_nascimento: '', telefone: '', curso: '', instituicao: '', observacoes: '' },
 
       initEstagiarios() {
-        this.$watch('estagiariosSearch',   () => { this.estagiariosPage = 1; this.$nextTick(() => lucide.createIcons()); });
+        ['estagiariosSearch', 'estagiosSortBy', 'estagiosSortDir'].forEach(w => {
+          this.$watch(w, () => { this.estagiariosPage = 1; this.$nextTick(() => lucide.createIcons()); });
+        });
         this.$watch('estagiariosPage',     () => { this.$nextTick(() => lucide.createIcons()); });
         this.$watch('estagiariosPerPage',  () => { this.$nextTick(() => lucide.createIcons()); });
 
@@ -1065,6 +1076,10 @@
       contratosLoaded:         false,
       contratosUltimaConsulta: null,
       contratosSearch:         '',
+      contratosFiltroStatus:   '',
+      contratosFiltroTipo:     '',
+      contratosSortBy:         'data_inicio',
+      contratosSortDir:        'asc',
       contratosPage:           1,
       contratosPerPage:        10,
 
@@ -1073,7 +1088,9 @@
       _contratoDataFimSugerida: '',
 
       initContratos() {
-        this.$watch('contratosSearch',   () => { this.contratosPage = 1; this.$nextTick(() => lucide.createIcons()); });
+        ['contratosSearch', 'contratosFiltroStatus', 'contratosFiltroTipo', 'contratosSortBy', 'contratosSortDir'].forEach(w => {
+          this.$watch(w, () => { this.contratosPage = 1; this.$nextTick(() => lucide.createIcons()); });
+        });
         this.$watch('contratosPage',     () => { this.$nextTick(() => lucide.createIcons()); });
         this.$watch('contratosPerPage',  () => { this.$nextTick(() => lucide.createIcons()); });
         window.addEventListener('app:navigate', (e) => {
@@ -1592,7 +1609,24 @@
       roleBadgeLabel(role) { return ROLES.badgeLabel(role); },
 
       get usersFiltered() {
-        return ListUtils.filter(this.users, this.userSearch, ['email'], this.userRoleFilter, 'role');
+        const term    = this.userSearch.toLowerCase().trim();
+        const role    = this.userRoleFilter;
+        const sortBy  = this.usersSortBy;
+        const sortDir = this.usersSortDir;
+
+        const result = this.users.filter(u => {
+          if (role && u.role !== role) return false;
+          if (term && !u.email.toLowerCase().includes(term)) return false;
+          return true;
+        });
+
+        result.sort((a, b) => {
+          const va = String(a[sortBy] ?? '').toLowerCase();
+          const vb = String(b[sortBy] ?? '').toLowerCase();
+          return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+        });
+
+        return result;
       },
       get usersTotalPages() {
         return ListUtils.totalPages(this.usersFiltered.length, this.usersPerPage);
@@ -1614,7 +1648,21 @@
         return this.cargos.filter(c => String(c.id_orgao) === String(this.selectedOrgao.id));
       },
       get magistradosFiltrados() {
-        return ListUtils.filter(this.magistrados, this.magistradoSearch, ['nome', 'matricula'], '', '');
+        const term    = this.magistradoSearch.toLowerCase().trim();
+        const sortBy  = this.magistradosSortBy;
+        const sortDir = this.magistradosSortDir;
+
+        const result = this.magistrados.filter(m =>
+          !term || ['nome', 'matricula'].some(f => String(m[f] ?? '').toLowerCase().includes(term))
+        );
+
+        result.sort((a, b) => {
+          const va = String(a[sortBy] ?? '').toLowerCase();
+          const vb = String(b[sortBy] ?? '').toLowerCase();
+          return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+        });
+
+        return result;
       },
       get magistradosTotalPages() {
         return ListUtils.totalPages(this.magistradosFiltrados.length, this.magistradosPerPage);
@@ -1624,7 +1672,22 @@
       },
 
       get estagiosFiltrados() {
-        return ListUtils.filter(this.estagiosList, this.estagiariosSearch, ['nome', 'cpf'], '', '');
+        const term    = this.estagiariosSearch.toLowerCase().trim();
+        const sortBy  = this.estagiosSortBy;
+        const sortDir = this.estagiosSortDir;
+
+        const result = this.estagiosList.filter(e => {
+          if (!term) return true;
+          return ['nome', 'email', 'matricula'].some(f => String(e[f] ?? '').toLowerCase().includes(term));
+        });
+
+        result.sort((a, b) => {
+          const va = String(a[sortBy] ?? '').toLowerCase();
+          const vb = String(b[sortBy] ?? '').toLowerCase();
+          return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+        });
+
+        return result;
       },
       get estagiosTotalPages() {
         return ListUtils.totalPages(this.estagiosFiltrados.length, this.estagiariosPerPage);
@@ -1634,13 +1697,36 @@
       },
 
       get contratosFiltrados() {
-        const term = this.contratosSearch.toLowerCase().trim();
-        if (!term) return this.contratos;
-        return this.contratos.filter(c => {
-          const nome   = this.contratoEstagiarioNome(c).toLowerCase();
-          const codigo = this.contratoVagaCodigo(c).toLowerCase();
-          return nome.includes(term) || codigo.includes(term);
+        const term    = this.contratosSearch.toLowerCase().trim();
+        const status  = this.contratosFiltroStatus;
+        const tipo    = this.contratosFiltroTipo;
+        const sortBy  = this.contratosSortBy;
+        const sortDir = this.contratosSortDir;
+
+        const result = this.contratos.filter(c => {
+          if (tipo   && c.tipo_contrato !== tipo)           return false;
+          if (status && this.contratoStatus(c) !== status)  return false;
+          if (term) {
+            const nome   = this.contratoEstagiarioNome(c).toLowerCase();
+            const codigo = this.contratoVagaCodigo(c).toLowerCase();
+            if (!nome.includes(term) && !codigo.includes(term)) return false;
+          }
+          return true;
         });
+
+        result.sort((a, b) => {
+          let va, vb;
+          if (sortBy === 'estagiario') {
+            va = this.contratoEstagiarioNome(a).toLowerCase();
+            vb = this.contratoEstagiarioNome(b).toLowerCase();
+            return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+          }
+          va = String(a[sortBy] ?? '');
+          vb = String(b[sortBy] ?? '');
+          return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+        });
+
+        return result;
       },
       get contratosTotalPages() {
         return ListUtils.totalPages(this.contratosFiltrados.length, this.contratosPerPage);

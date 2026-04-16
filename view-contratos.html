@@ -23,99 +23,185 @@
       </div>
     </div>
 
-    <!-- Filtro -->
+    <!-- Filtros -->
     <div class="card px-5 py-4">
-      <div class="relative">
-        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none"></i>
-        <input type="text"
-               x-model="contratosSearch"
-               placeholder="Buscar por estagiário ou código da vaga..."
-               class="form-input pl-9 w-full" />
+      <div class="flex flex-col sm:flex-row gap-2.5">
+        <div class="relative flex-1">
+          <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none"></i>
+          <input type="text"
+                 x-model="contratosSearch"
+                 placeholder="Buscar por estagiário ou código da vaga..."
+                 class="form-input pl-9 w-full" />
+        </div>
+        <select x-model="contratosFiltroStatus" class="select-input sm:w-44">
+          <option value="">Todos os status</option>
+          <option value="Ativo">Ativo</option>
+          <option value="Não iniciado">Não iniciado</option>
+          <option value="Encerrado">Encerrado</option>
+        </select>
+        <select x-model="contratosFiltroTipo" class="select-input sm:w-44">
+          <option value="">Todos os tipos</option>
+          <option value="graduacao">Graduação</option>
+          <option value="pos_graduacao">Pós-Graduação</option>
+        </select>
       </div>
     </div>
 
     <!-- Card principal -->
     <div class="card overflow-hidden">
 
-      <!-- Cabeçalhos de coluna -->
-      <div class="px-5 py-4 bg-bg-light hidden sm:flex items-center gap-3">
-        <p class="text-xs font-semibold text-text-muted uppercase tracking-wide flex-1">Estagiário</p>
-        <p class="text-xs font-semibold text-text-muted uppercase tracking-wide w-24 hidden md:block">Vaga</p>
-        <p class="text-xs font-semibold text-text-muted uppercase tracking-wide w-28 hidden md:block">Tipo</p>
-        <p class="text-xs font-semibold text-text-muted uppercase tracking-wide w-28 hidden lg:block">Data Início</p>
-        <p class="text-xs font-semibold text-text-muted uppercase tracking-wide w-28 hidden lg:block">Data Fim</p>
-        <p class="text-xs font-semibold text-text-muted uppercase tracking-wide w-24">Status</p>
-        <p class="text-xs font-semibold text-text-muted uppercase tracking-wide w-20 text-right pr-1">Ações</p>
-      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse">
 
-      <!-- Tabela -->
-      <div class="divide-y divide-border">
-        <template x-if="contratosFiltrados.length === 0">
-          <div class="py-16 text-center">
-            <div class="w-12 h-12 rounded-2xl bg-bg-medium flex items-center justify-center mx-auto mb-3">
-              <i data-lucide="file-text" class="w-6 h-6 text-text-muted"></i>
-            </div>
-            <p class="text-text-muted text-sm">Nenhum contrato encontrado.</p>
-          </div>
-        </template>
-        <template x-for="c in contratosPaged" :key="c.id">
-          <div class="px-5 py-3.5 flex items-center gap-3 hover:bg-bg-light transition-colors">
-            <!-- Estagiário -->
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-text-main truncate" x-text="contratoEstagiarioNome(c)"></p>
-            </div>
-            <!-- Vaga -->
-            <div class="w-24 flex-shrink-0 hidden md:block">
-              <p class="text-sm font-mono text-text-main" x-text="contratoVagaCodigo(c)"></p>
-            </div>
-            <!-- Tipo -->
-            <div class="w-28 flex-shrink-0 hidden md:block">
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-                    :class="{
-                      'bg-blue-50 text-blue-700': c.tipo_contrato === 'graduacao',
-                      'bg-purple-50 text-purple-700': c.tipo_contrato === 'pos_graduacao'
-                    }"
-                    x-text="c.tipo_contrato === 'graduacao' ? 'Graduação' : 'Pós-Graduação'">
-              </span>
-            </div>
-            <!-- Data Início -->
-            <div class="w-28 flex-shrink-0 hidden lg:block">
-              <p class="text-sm text-text-main" x-text="contratoDataFormatada(c.data_inicio)"></p>
-            </div>
-            <!-- Data Fim -->
-            <div class="w-28 flex-shrink-0 hidden lg:block">
-              <p class="text-sm text-text-main" x-text="contratoDataFormatada(c.data_fim)"></p>
-            </div>
-            <!-- Status calculado -->
-            <div class="w-24 flex-shrink-0">
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-                    :class="{
-                      'bg-green-50 text-green-700':  contratoStatus(c) === 'Ativo',
-                      'bg-amber-50 text-amber-700':  contratoStatus(c) === 'Não iniciado',
-                      'bg-gray-100 text-gray-500':   contratoStatus(c) === 'Encerrado'
-                    }"
-                    x-text="contratoStatus(c)">
-              </span>
-            </div>
-            <!-- Ações -->
-            <div class="flex items-center gap-1 flex-shrink-0 w-20 justify-end">
-              <template x-if="canEdit()">
-                <span class="flex items-center gap-1">
-                  <button class="w-8 h-8 rounded-lg border border-border flex items-center justify-center
-                                 text-text-muted hover:border-primary hover:text-primary transition-all"
-                          @click="openEditContrato(c)" title="Editar contrato">
-                    <i data-lucide="pencil" class="w-4 h-4"></i>
-                  </button>
-                  <button class="w-8 h-8 rounded-lg border border-border flex items-center justify-center
-                                 text-text-muted hover:border-red-300 hover:text-red-500 transition-all"
-                          @click="deleteContrato(c)" title="Excluir contrato">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                  </button>
-                </span>
-              </template>
-            </div>
-          </div>
-        </template>
+          <!-- Cabeçalho -->
+          <thead>
+            <tr class="bg-bg-light border-b border-border">
+
+              <!-- Estagiário (sortável) -->
+              <th class="px-5 py-3.5 text-left">
+                <button class="flex items-center gap-1 group"
+                        @click="contratosSortBy === 'estagiario' ? contratosSortDir = (contratosSortDir === 'asc' ? 'desc' : 'asc') : (contratosSortBy = 'estagiario', contratosSortDir = 'asc')"
+                        :title="contratosSortBy === 'estagiario' ? (contratosSortDir === 'asc' ? 'Ordenado por estagiário A→Z. Clique para inverter.' : 'Ordenado por estagiário Z→A. Clique para inverter.') : 'Clique para ordenar por estagiário'">
+                  <span class="text-xs font-semibold text-text-muted uppercase tracking-wide group-hover:text-primary transition-colors">Estagiário</span>
+                  <i class="w-3 h-3 text-text-muted group-hover:text-primary transition-colors"
+                     :data-lucide="contratosSortBy === 'estagiario' ? (contratosSortDir === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrow-up-down'"></i>
+                </button>
+              </th>
+
+              <!-- Vaga -->
+              <th class="px-5 py-3.5 text-left w-24 hidden md:table-cell">
+                <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Vaga</span>
+              </th>
+
+              <!-- Tipo -->
+              <th class="px-5 py-3.5 text-left w-32 hidden md:table-cell">
+                <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Tipo</span>
+              </th>
+
+              <!-- Data Início (sortável) -->
+              <th class="px-5 py-3.5 text-left w-32 hidden lg:table-cell">
+                <button class="flex items-center gap-1 group"
+                        @click="contratosSortBy === 'data_inicio' ? contratosSortDir = (contratosSortDir === 'asc' ? 'desc' : 'asc') : (contratosSortBy = 'data_inicio', contratosSortDir = 'asc')"
+                        :title="contratosSortBy === 'data_inicio' ? (contratosSortDir === 'asc' ? 'Ordenado por data de início crescente. Clique para inverter.' : 'Ordenado por data de início decrescente. Clique para inverter.') : 'Clique para ordenar por data de início'">
+                  <span class="text-xs font-semibold text-text-muted uppercase tracking-wide group-hover:text-primary transition-colors">Início</span>
+                  <i class="w-3 h-3 text-text-muted group-hover:text-primary transition-colors"
+                     :data-lucide="contratosSortBy === 'data_inicio' ? (contratosSortDir === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrow-up-down'"></i>
+                </button>
+              </th>
+
+              <!-- Data Fim (sortável) -->
+              <th class="px-5 py-3.5 text-left w-32 hidden lg:table-cell">
+                <button class="flex items-center gap-1 group"
+                        @click="contratosSortBy === 'data_fim' ? contratosSortDir = (contratosSortDir === 'asc' ? 'desc' : 'asc') : (contratosSortBy = 'data_fim', contratosSortDir = 'asc')"
+                        :title="contratosSortBy === 'data_fim' ? (contratosSortDir === 'asc' ? 'Ordenado por data de fim crescente. Clique para inverter.' : 'Ordenado por data de fim decrescente. Clique para inverter.') : 'Clique para ordenar por data de fim'">
+                  <span class="text-xs font-semibold text-text-muted uppercase tracking-wide group-hover:text-primary transition-colors">Fim</span>
+                  <i class="w-3 h-3 text-text-muted group-hover:text-primary transition-colors"
+                     :data-lucide="contratosSortBy === 'data_fim' ? (contratosSortDir === 'asc' ? 'arrow-up' : 'arrow-down') : 'arrow-up-down'"></i>
+                </button>
+              </th>
+
+              <!-- Status -->
+              <th class="px-5 py-3.5 text-left w-28">
+                <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Status</span>
+              </th>
+
+              <!-- Ações -->
+              <th class="px-5 py-3.5 text-right w-20">
+                <span class="text-xs font-semibold text-text-muted uppercase tracking-wide">Ações</span>
+              </th>
+
+            </tr>
+          </thead>
+
+          <!-- Body -->
+          <tbody class="divide-y divide-border">
+
+            <!-- Estado vazio -->
+            <template x-if="contratosFiltrados.length === 0">
+              <tr>
+                <td colspan="7" class="py-16 text-center">
+                  <div class="w-12 h-12 rounded-2xl bg-bg-medium flex items-center justify-center mx-auto mb-3">
+                    <i data-lucide="file-text" class="w-6 h-6 text-text-muted"></i>
+                  </div>
+                  <p class="text-text-muted text-sm">Nenhum contrato encontrado.</p>
+                </td>
+              </tr>
+            </template>
+
+            <!-- Linhas -->
+            <template x-for="c in contratosPaged" :key="c.id">
+              <tr class="hover:bg-bg-light transition-colors">
+
+                <!-- Estagiário -->
+                <td class="px-5 py-3.5">
+                  <p class="text-sm font-medium text-text-main truncate" x-text="contratoEstagiarioNome(c)"></p>
+                  <!-- Mobile: vaga e datas abaixo do nome -->
+                  <p class="text-xs text-text-muted font-mono mt-0.5 md:hidden" x-text="contratoVagaCodigo(c)"></p>
+                </td>
+
+                <!-- Vaga -->
+                <td class="px-5 py-3.5 w-24 hidden md:table-cell">
+                  <p class="text-sm font-mono text-text-main" x-text="contratoVagaCodigo(c)"></p>
+                </td>
+
+                <!-- Tipo -->
+                <td class="px-5 py-3.5 w-32 hidden md:table-cell">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                        :class="{
+                          'bg-blue-50 text-blue-700': c.tipo_contrato === 'graduacao',
+                          'bg-purple-50 text-purple-700': c.tipo_contrato === 'pos_graduacao'
+                        }"
+                        x-text="c.tipo_contrato === 'graduacao' ? 'Graduação' : 'Pós-Graduação'">
+                  </span>
+                </td>
+
+                <!-- Data Início -->
+                <td class="px-5 py-3.5 w-32 hidden lg:table-cell">
+                  <p class="text-sm text-text-main" x-text="contratoDataFormatada(c.data_inicio)"></p>
+                </td>
+
+                <!-- Data Fim -->
+                <td class="px-5 py-3.5 w-32 hidden lg:table-cell">
+                  <p class="text-sm text-text-main" x-text="contratoDataFormatada(c.data_fim)"></p>
+                </td>
+
+                <!-- Status -->
+                <td class="px-5 py-3.5 w-28">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                        :class="{
+                          'bg-green-50 text-green-700':  contratoStatus(c) === 'Ativo',
+                          'bg-amber-50 text-amber-700':  contratoStatus(c) === 'Não iniciado',
+                          'bg-gray-100 text-gray-500':   contratoStatus(c) === 'Encerrado'
+                        }"
+                        x-text="contratoStatus(c)">
+                  </span>
+                </td>
+
+                <!-- Ações -->
+                <td class="px-5 py-3.5 w-20">
+                  <div class="flex items-center gap-1 justify-end">
+                    <template x-if="canEdit()">
+                      <span class="flex items-center gap-1">
+                        <button class="w-8 h-8 rounded-lg border border-border flex items-center justify-center
+                                       text-text-muted hover:border-primary hover:text-primary transition-all"
+                                @click="openEditContrato(c)" title="Editar contrato">
+                          <i data-lucide="pencil" class="w-4 h-4"></i>
+                        </button>
+                        <button class="w-8 h-8 rounded-lg border border-border flex items-center justify-center
+                                       text-text-muted hover:border-red-300 hover:text-red-500 transition-all"
+                                @click="deleteContrato(c)" title="Excluir contrato">
+                          <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                      </span>
+                    </template>
+                  </div>
+                </td>
+
+              </tr>
+            </template>
+
+          </tbody>
+        </table>
       </div>
 
       <!-- Rodapé com paginação -->
