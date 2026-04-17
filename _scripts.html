@@ -669,6 +669,8 @@
               const c = res.data.collections;
               this.estagiosList    = c.estagiarios || [];
               this.contratos       = c.contratos   || [];
+              this.vagas           = c.vagas        || [];
+              this.setores         = c.setores      || [];
               this.estagiariosLoaded         = true;
               this.estagiariosUltimaConsulta = this._agora();
               this.contratosLoaded           = true;
@@ -677,7 +679,7 @@
             this.$nextTick(() => lucide.createIcons());
           })
           .withFailureHandler((err) => { Loading.hide(); Toast.error(err.message); })
-          .getAppData(['estagiarios', 'contratos']);
+          .getAppData(['estagiarios', 'contratos', 'vagas', 'setores']);
       },
 
       openAddEstagiario() {
@@ -1115,10 +1117,8 @@
               this.setores        = c.setores      || [];
               this.contratosLoaded           = true;
               this.estagiariosLoaded         = true;
-              this.vagasLoaded               = true;
               this.contratosUltimaConsulta   = this._agora();
               this.estagiariosUltimaConsulta = this._agora();
-              this.vagasUltimaConsulta       = this._agora();
             } else Toast.error(res.message);
             this.$nextTick(() => lucide.createIcons());
           })
