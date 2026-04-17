@@ -879,8 +879,11 @@
               this.vagasLoaded               = true;
               this.contratosLoaded           = true;
               this.estagiariosLoaded         = true;
+              this.magistradosLoaded         = true;
+              this.composicaoLoaded          = true;
               this.contratosUltimaConsulta   = this.vagasUltimaConsulta;
               this.estagiariosUltimaConsulta = this.vagasUltimaConsulta;
+              this.composicaoUltimaConsulta  = this.vagasUltimaConsulta;
             } else Toast.error(res.message);
             this.$nextTick(() => lucide.createIcons());
           })
@@ -1563,8 +1566,10 @@
               this.setores               = c.setores      || [];
               this.contratosLoaded           = true;
               this.alertasLoaded             = true;
+              this.estagiariosLoaded         = true;
               this.contratosUltimaConsulta   = this._agora();
               this.alertasUltimaConsulta     = this._agora();
+              this.estagiariosUltimaConsulta = this._agora();
             } else Toast.error(res.message);
             this.$nextTick(() => lucide.createIcons());
           })
