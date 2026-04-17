@@ -43,9 +43,11 @@
 
   <script>
     const INITIAL_DATA = {
-      userRole:     JSON.parse("<?= JSON.stringify(userRole) ?>"),
-      userEmail:    JSON.parse("<?= JSON.stringify(userEmail) ?>"),
-      alertasMuted: JSON.parse("<?= JSON.stringify(alertasMuted) ?>"),
+      userRole:        JSON.parse("<?= JSON.stringify(userRole) ?>"),
+      userEmail:       JSON.parse("<?= JSON.stringify(userEmail) ?>"),
+      userDisplayName: JSON.parse("<?= JSON.stringify(userDisplayName) ?>"),
+      userPhotoUrl:    JSON.parse("<?= JSON.stringify(userPhotoUrl) ?>"),
+      alertasMuted:    JSON.parse("<?= JSON.stringify(alertasMuted) ?>"),
     };
   </script>
 
@@ -195,15 +197,21 @@
 
     <div class="px-3 py-3 border-t border-white/10 flex-shrink-0 user-info-container">
       <div class="flex items-center gap-3 user-info-wrapper">
-        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-info
-                    flex items-center justify-center
-                    text-white text-xs font-bold flex-shrink-0 shadow-lg cursor-default"
-             :title="userEmail"
-             x-text="userInitial">
-        </div>
+        <template x-if="userPhotoUrl">
+          <img :src="userPhotoUrl" :title="userEmail"
+               class="w-9 h-9 rounded-full object-cover flex-shrink-0 shadow-lg cursor-default">
+        </template>
+        <template x-if="!userPhotoUrl">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-info
+                      flex items-center justify-center
+                      text-white text-xs font-bold flex-shrink-0 shadow-lg cursor-default"
+               :title="userEmail"
+               x-text="userInitial">
+          </div>
+        </template>
         <div class="overflow-hidden user-info-text min-w-0">
           <p class="text-sm font-medium text-white truncate"
-             x-text="userEmail"
+             x-text="userDisplayName"
              :title="userEmail"></p>
           <p class="text-[11px] text-white/50 truncate" x-text="roleLabel(userRole)"></p>
         </div>

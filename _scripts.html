@@ -1601,9 +1601,11 @@
       ...modalModule(),
       ...navigationModule(),
 
-      userEmail:    DATA.userEmail,
-      userInitial:  DATA.userEmail.charAt(0).toUpperCase(),
-      userRole:     DATA.userRole,
+      userEmail:        DATA.userEmail,
+      userDisplayName:  DATA.userDisplayName || DATA.userEmail,
+      userPhotoUrl:     DATA.userPhotoUrl    || null,
+      userInitial:      (DATA.userDisplayName || DATA.userEmail).charAt(0).toUpperCase(),
+      userRole:         DATA.userRole,
       alertasCount: 0,
       alertasMuted: DATA.alertasMuted || false,
 

@@ -75,6 +75,23 @@ const UserService = {
     }
   },
 
+  getUserProfile(email) {
+    try {
+      const res = People.People.searchDirectoryPeople({
+        query: email,
+        readMask: 'names,photos',
+        sources: ['DIRECTORY_SOURCE_TYPE_DOMAIN_PROFILE'],
+      });
+      const person = res.people?.[0];
+      return {
+        displayName: person?.names?.[0]?.displayName || email,
+        photoUrl:    person?.photos?.[0]?.url        || null,
+      };
+    } catch (_) {
+      return { displayName: email, photoUrl: null };
+    }
+  },
+
   getAlertasMuted() {
     return PropertiesService.getUserProperties().getProperty('app_alertas_muted') === 'true';
   },

@@ -2,12 +2,15 @@ function doGet(e) {
   const email = getUserEmail();
   const role  = UserService.getRole(email);
   if (!role) return render('acesso-negado', { appName: CONFIG.APP_NAME });
+  const profile = UserService.getUserProfile(email);
   return render('index', {
-    userRole:      role,
-    userEmail:     email,
-    appName:       CONFIG.APP_NAME,
-    appSubtitle:   CONFIG.APP_SUBTITLE || 'Subtítulo da aplicação',
-    alertasMuted:  UserService.getAlertasMuted(),
+    userRole:        role,
+    userEmail:       email,
+    userDisplayName: profile.displayName,
+    userPhotoUrl:    profile.photoUrl,
+    appName:         CONFIG.APP_NAME,
+    appSubtitle:     CONFIG.APP_SUBTITLE || 'Subtítulo da aplicação',
+    alertasMuted:    UserService.getAlertasMuted(),
   });
 }
 
