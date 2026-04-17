@@ -43,8 +43,9 @@
 
   <script>
     const INITIAL_DATA = {
-      userRole:  JSON.parse("<?= JSON.stringify(userRole) ?>"),
-      userEmail: JSON.parse("<?= JSON.stringify(userEmail) ?>"),
+      userRole:     JSON.parse("<?= JSON.stringify(userRole) ?>"),
+      userEmail:    JSON.parse("<?= JSON.stringify(userEmail) ?>"),
+      alertasMuted: JSON.parse("<?= JSON.stringify(alertasMuted) ?>"),
     };
   </script>
 
@@ -236,7 +237,7 @@
                 @click="navigate('alertas')"
                 title="Ver alertas">
           <i data-lucide="bell" class="w-4 h-4"></i>
-          <template x-if="alertasCount > 0">
+          <template x-if="alertasCount > 0 && !alertasMuted">
             <span class="absolute -top-2 -right-2 badge badge-danger" x-text="badgeLabel(alertasCount)"></span>
           </template>
         </button>

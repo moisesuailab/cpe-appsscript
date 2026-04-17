@@ -75,6 +75,14 @@ const UserService = {
     }
   },
 
+  getAlertasMuted() {
+    return PropertiesService.getUserProperties().getProperty('app_alertas_muted') === 'true';
+  },
+
+  setAlertasMuted(value) {
+    PropertiesService.getUserProperties().setProperty('app_alertas_muted', value ? 'true' : 'false');
+  },
+
   _loadRaw() {
     const raw = PropertiesService.getScriptProperties().getProperty(this._KEY) || '{}';
     try { return JSON.parse(raw); } catch { return {}; }

@@ -1432,8 +1432,8 @@
           { id: 'magistrados',  label: 'Magistrados',  icon: lucideIcon('gavel'),             badge: null,                                    roles: [ROLES.ADMIN] },
           { id: 'composicao',   label: 'Composição',   icon: lucideIcon('network'),           badge: null,                                    roles: [ROLES.ADMIN] },
           { id: 'usuarios',     label: 'Usuários',     icon: lucideIcon('users'),             badge: null,                                    roles: [ROLES.ADMIN] },
-          { id: 'alertas',      label: 'Alertas',      icon: lucideIcon('bell'),              badge: this.badgeLabel(this.alertasCount),       roles: null },
-          { id: 'configuracoes',label: 'Configurações',icon: lucideIcon('settings'),          badge: null,                                    roles: [ROLES.ADMIN] },
+          { id: 'alertas',      label: 'Alertas',      icon: lucideIcon('bell'),              badge: this.alertasMuted ? null : this.badgeLabel(this.alertasCount), roles: null },
+          { id: 'configuracoes',label: 'Configurações',icon: lucideIcon('settings'),          badge: null,                                                          roles: null },
         ];
         this.navItems = all.filter(item => !item.roles || item.roles.includes(this.userRole));
       },
@@ -1605,6 +1605,7 @@
       userInitial:  DATA.userEmail.charAt(0).toUpperCase(),
       userRole:     DATA.userRole,
       alertasCount: 0,
+      alertasMuted: DATA.alertasMuted || false,
 
       init() {
         this._buildNavItems();
@@ -1625,6 +1626,20 @@
 
       canEdit()  { return [ROLES.ADMIN, ROLES.EDITOR].includes(this.userRole); },
       canAdmin() { return this.userRole === ROLES.ADMIN; },
+
+      toggleAlertasMuted() {
+        this.alertasMuted = !this.alertasMuted;
+        const item = this.navItems.find(i => i.id === 'alertas');
+        if (item) item.badge = this.alertasMuted ? null : this.badgeLabel(this.alertasCount);
+        google.script.run
+          .withSuccessHandler(() => {})
+          .withFailureHandler(() => {
+            this.alertasMuted = !this.alertasMuted;
+            if (item) item.badge = this.alertasMuted ? null : this.badgeLabel(this.alertasCount);
+            Toast.error('Falha ao salvar preferência.');
+          })
+          .setAlertasMuted(this.alertasMuted);
+      },
 
       roleLabel(role) { return ROLES.label(role); },
       badgeLabel(count) { return count > 99 ? '99+' : count; },

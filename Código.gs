@@ -3,10 +3,11 @@ function doGet(e) {
   const role  = UserService.getRole(email);
   if (!role) return render('acesso-negado', { appName: CONFIG.APP_NAME });
   return render('index', {
-    userRole:    role,
-    userEmail:   email,
-    appName:     CONFIG.APP_NAME,
-    appSubtitle: CONFIG.APP_SUBTITLE || 'Subtítulo da aplicação',
+    userRole:      role,
+    userEmail:     email,
+    appName:       CONFIG.APP_NAME,
+    appSubtitle:   CONFIG.APP_SUBTITLE || 'Subtítulo da aplicação',
+    alertasMuted:  UserService.getAlertasMuted(),
   });
 }
 
@@ -65,6 +66,10 @@ function genericFindById(sheetName, id) { _requireAccess(); return EntityService
 function genericCreate(sheetName, data) { _requireRole('editor'); return EntityService.create(sheetName, data); }
 function genericUpdate(sheetName, id, data) { _requireRole('editor'); return EntityService.update(sheetName, id, data); }
 function genericDelete(sheetName, id) { _requireRole('admin'); return EntityService.delete(sheetName, id); }
+
+// Preferências de usuário — qualquer role autenticado
+function getAlertasMuted()        { _requireAccess(); return UserService.getAlertasMuted(); }
+function setAlertasMuted(value)   { _requireAccess(); UserService.setAlertasMuted(value); }
 
 // Gestão de usuários — somente admin
 function userGetAll() { _requireRole('admin'); return UserService.getAll(); }

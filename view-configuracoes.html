@@ -1,4 +1,4 @@
-<template x-if="currentView === 'configuracoes' && canAdmin()">
+<template x-if="currentView === 'configuracoes'">
 <div class="main-content" x-cloak>
   <div class="space-y-5">
 
@@ -18,62 +18,90 @@
       </div>
     </div>
 
-    <!-- Setor encontrado -->
-    <template x-if="configuracaoLoaded && setorCPE">
-      <div class="flex justify-center">
-      <div class="card p-5 w-full max-w-md">
+    <!-- Gerente -->
+    <div class="flex justify-center">
+    <div class="card p-5 w-full max-w-md">
 
-        <div class="flex items-center justify-between mb-4">
-          <p class="text-sm font-semibold text-text-main" x-text="'Gerente ' + setorCPE.sigla"></p>
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-sm font-semibold text-text-main" x-text="setorCPE ? 'Gerente ' + setorCPE.sigla : 'Gerente'"></p>
+      </div>
+
+      <hr class="border-border mb-4" />
+
+      <!-- Skeleton -->
+      <template x-if="!configuracaoLoaded">
+        <div class="space-y-2 animate-pulse">
+          <div class="h-3 w-16 rounded bg-bg-medium"></div>
+          <div class="h-5 w-48 rounded bg-bg-medium"></div>
+          <div class="h-3 w-24 rounded bg-bg-medium"></div>
         </div>
+      </template>
 
-        <hr class="border-border mb-4" />
-
-        <template x-if="gerenteCPE">
-          <div>
-            <p class="text-xs text-text-muted mb-1">Nome</p>
-            <p class="text-base font-semibold text-text-main" x-text="gerenteCPE.nome"></p>
-            <p class="text-sm text-text-muted mt-0.5" x-text="gerenteCPE.matricula"></p>
-            <p class="text-xs text-text-muted mt-1"
-               x-text="'Editado em: ' + (gerenteCPE.atualizado_em ? new Date(gerenteCPE.atualizado_em).toLocaleDateString('pt-BR') : '—')">
-            </p>
-
-            <template x-if="canAdmin()">
-              <button class="btn-outline mt-4 flex items-center gap-2" @click="openEditGerente()">
-                <i data-lucide="pencil" class="w-4 h-4"></i>
-                Editar
-              </button>
-            </template>
-          </div>
-        </template>
-
-        <template x-if="!gerenteCPE">
-          <div class="py-8 text-center">
-            <div class="w-10 h-10 rounded-2xl bg-bg-medium flex items-center justify-center mx-auto mb-3">
-              <i data-lucide="user-x" class="w-5 h-5 text-text-muted"></i>
-            </div>
-            <p class="text-sm text-text-muted" x-text="'Nenhum gestor cadastrado para o setor ' + setorCPE.sigla + '.'"></p>
-          </div>
-        </template>
-
-      </div>
-      </div>
-    </template>
-
-    <!-- Setor CPE não encontrado na planilha -->
-    <template x-if="configuracaoLoaded && !setorCPE">
-      <div class="flex justify-center">
-      <div class="card p-5 w-full max-w-md">
-        <div class="py-8 text-center">
+      <!-- Setor não encontrado -->
+      <template x-if="configuracaoLoaded && !setorCPE">
+        <div class="py-6 text-center">
           <div class="w-10 h-10 rounded-2xl bg-bg-medium flex items-center justify-center mx-auto mb-3">
             <i data-lucide="alert-triangle" class="w-5 h-5 text-warning"></i>
           </div>
           <p class="text-sm font-semibold text-text-main mb-1">Setor não encontrado</p>
           <p class="text-xs text-text-muted">O setor CPE não foi encontrado na planilha. Execute o Setup para corrigir.</p>
         </div>
+      </template>
+
+      <!-- Gerente encontrado -->
+      <template x-if="configuracaoLoaded && setorCPE && gerenteCPE">
+        <div>
+          <p class="text-xs text-text-muted mb-1">Nome</p>
+          <p class="text-base font-semibold text-text-main" x-text="gerenteCPE.nome"></p>
+          <p class="text-sm text-text-muted mt-0.5" x-text="gerenteCPE.matricula"></p>
+          <p class="text-xs text-text-muted mt-1"
+             x-text="'Editado em: ' + (gerenteCPE.atualizado_em ? new Date(gerenteCPE.atualizado_em).toLocaleDateString('pt-BR') : '—')">
+          </p>
+          <template x-if="canAdmin()">
+            <button class="btn-outline mt-4 flex items-center gap-2" @click="openEditGerente()">
+              <i data-lucide="pencil" class="w-4 h-4"></i>
+              Editar
+            </button>
+          </template>
+        </div>
+      </template>
+
+      <!-- Sem gerente cadastrado -->
+      <template x-if="configuracaoLoaded && setorCPE && !gerenteCPE">
+        <div class="py-6 text-center">
+          <div class="w-10 h-10 rounded-2xl bg-bg-medium flex items-center justify-center mx-auto mb-3">
+            <i data-lucide="user-x" class="w-5 h-5 text-text-muted"></i>
+          </div>
+          <p class="text-sm text-text-muted" x-text="'Nenhum gestor cadastrado para o setor ' + setorCPE.sigla + '.'"></p>
+        </div>
+      </template>
+
+    </div>
+    </div>
+
+    <!-- Notificações -->
+    <div class="flex justify-center">
+    <div class="card p-5 w-full max-w-md">
+
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-sm font-semibold text-text-main">Notificações</p>
       </div>
+
+      <hr class="border-border mb-4" />
+
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <p class="text-sm text-text-main">Desabilitar notificações</p>
+          <p class="text-xs text-text-muted mt-0.5">Oculta o contador de alertas no menu e no botão de sino.</p>
+        </div>
+        <label class="toggle-switch flex-shrink-0">
+          <input type="checkbox" :checked="alertasMuted" @change="toggleAlertasMuted()">
+          <span class="toggle-track"></span>
+        </label>
       </div>
-    </template>
+
+    </div>
+    </div>
 
   </div>
 </div>
