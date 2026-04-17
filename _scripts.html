@@ -1414,6 +1414,8 @@
       },
 
       navigate(viewId) {
+        const adminOnly = ['magistrados', 'composicao', 'usuarios'];
+        if (adminOnly.includes(viewId) && !this.canAdmin()) return;
         this.currentView = viewId;
         window.dispatchEvent(new CustomEvent('app:navigate', { detail: { viewId } }));
         this.$nextTick(() => lucide.createIcons());

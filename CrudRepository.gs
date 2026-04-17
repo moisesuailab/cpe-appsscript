@@ -108,19 +108,35 @@ const CrudRepository = {
     });
   },
 
+  _updateRow(sheetName, id, data, sheet) {
+    const { values, headers, rowIndex } = this._findRow(sheetName, id, sheet);
+    const currentRow = Utils.arrayToObject(headers, values[rowIndex]);
+    const updatedRow = { ...currentRow, ...data, [CONFIG.ID_COLUMN]: id };
+    const updatedArray = Utils.objectToArray(headers, updatedRow);
+    const a1 = SheetsApiService.toA1Notation(rowIndex + 1, 1, 1, updatedArray.length);
+    SheetsApiService.updateValues(CONFIG.SPREADSHEET_ID, sheetName, a1, [updatedArray]);
+    return { success: true, rowNumber: rowIndex + 1, data: updatedRow };
+  },
+
   update(sheetName, id, data) {
     return this._withLock(() => {
       try {
         const sheet = this._loadSheetData(sheetName);
-        const { values, headers, rowIndex } = this._findRow(sheetName, id, sheet);
-        const currentRow = Utils.arrayToObject(headers, values[rowIndex]);
-        const updatedRow = { ...currentRow, ...data, [CONFIG.ID_COLUMN]: id };
-        const updatedArray = Utils.objectToArray(headers, updatedRow);
-        const a1 = SheetsApiService.toA1Notation(rowIndex + 1, 1, 1, updatedArray.length);
-        SheetsApiService.updateValues(CONFIG.SPREADSHEET_ID, sheetName, a1, [updatedArray]);
-        return { success: true, rowNumber: rowIndex + 1, data: updatedRow };
+        return this._updateRow(sheetName, id, data, sheet);
       } catch (error) {
         Utils.logError('CrudRepository.update', error);
+        throw error;
+      }
+    });
+  },
+
+  updateBatch(sheetName, updates) {
+    return this._withLock(() => {
+      try {
+        const sheet = this._loadSheetData(sheetName);
+        return updates.map(({ id, data }) => this._updateRow(sheetName, id, data, sheet));
+      } catch (error) {
+        Utils.logError('CrudRepository.updateBatch', error);
         throw error;
       }
     });

@@ -74,15 +74,13 @@ const CargoService = {
         String(c.id) !== String(id)
       );
 
-      if (presidenteAtual) {
-        EntityService.update(this._SHEET, presidenteAtual.id, { is_presidente: 'FALSE' });
-      }
+      const updates = [];
+      if (presidenteAtual) updates.push({ id: presidenteAtual.id, data: { is_presidente: 'FALSE' } });
+      updates.push({ id, data: { is_presidente: 'TRUE' } });
 
-      const result = EntityService.update(this._SHEET, id, { is_presidente: 'TRUE' });
-      if (result.status === 'success') {
-        AppLogService.append('SET_PRESIDENTE_CARGO', 'cargos', id, `Cargo com ID '${id}' definido como presidente no órgão '${cargo.id_orgao}'.`);
-      }
-      return result;
+      CrudRepository.updateBatch(this._SHEET, updates);
+      AppLogService.append('SET_PRESIDENTE_CARGO', 'cargos', id, `Cargo com ID '${id}' definido como presidente no órgão '${cargo.id_orgao}'.`);
+      return Utils.createResponse('success', null, 'Presidente definido com sucesso.');
     } catch (error) {
       Utils.logError('CargoService.setPresidente', error);
       return Utils.createResponse('error', null, error.message);
