@@ -80,52 +80,42 @@ function userAdd(email, role) { _requireRole('admin'); return UserService.add(em
 function userUpdateRole(email, role) { _requireRole('admin'); return UserService.updateRole(email, role); }
 function userRemove(email) { _requireRole('admin'); return UserService.remove(email); }
 
-// Grupos
 function grupoCreate(data)     { _requireRole('admin'); return GrupoService.create(data); }
 function grupoUpdate(id, data) { _requireRole('admin'); return GrupoService.update(id, data); }
 function grupoDelete(id)       { _requireRole('admin'); return GrupoService.delete(id); }
 
-// Órgãos
 function orgaoCreate(data)     { _requireRole('admin'); return OrgaoService.create(data); }
 function orgaoUpdate(id, data) { _requireRole('admin'); return OrgaoService.update(id, data); }
 function orgaoDelete(id)       { _requireRole('admin'); return OrgaoService.delete(id); }
 
-// Cargos
 function cargoCreate(data)        { _requireRole('admin'); return CargoService.create(data); }
 function cargoUpdate(id, data)    { _requireRole('admin'); return CargoService.update(id, data); }
 function cargoDelete(id)          { _requireRole('admin'); return CargoService.delete(id); }
 function cargoSetPresidente(id)   { _requireRole('admin'); return CargoService.setPresidente(id); }
 
-// Ocupações
 function ocupacaoCreate(data)  { _requireRole('admin'); return OcupacaoService.create(data); }
 function ocupacaoRemover(id)   { _requireRole('admin'); return OcupacaoService.remover(id); }
 
-// Magistrados
 function magistradoCreate(data)     { _requireRole('admin'); return MagistradoService.create(data); }
 function magistradoUpdate(id, data) { _requireRole('admin'); return MagistradoService.update(id, data); }
 function magistradoDelete(id)       { _requireRole('admin'); return MagistradoService.delete(id); }
 
-// Setores e Gestores
 function setorGetAll()                   { _requireAccess();      return SetorService.findAll(); }
 function gestorSetorGetBySetor(id_setor) { _requireAccess();      return GestorSetorService.getBySetor(id_setor); }
 function gestorSetorUpdate(id, data)     { _requireRole('admin'); return GestorSetorService.update(id, data); }
 
-// Estagiários
 function estagiarioCreate(data)     { _requireRole('editor'); return EstagiarioService.create(data); }
 function estagiarioUpdate(id, data) { _requireRole('editor'); return EstagiarioService.update(id, data); }
 function estagiarioDelete(id)       { _requireRole('editor'); return EstagiarioService.delete(id); }
 
-// Vagas
 function vagaCreate(data)     { _requireRole('editor'); return VagaService.create(data); }
 function vagaUpdate(id, data) { _requireRole('editor'); return VagaService.update(id, data); }
 function vagaDelete(id)       { _requireRole('editor'); return VagaService.delete(id); }
 
-// Contratos
 function contratoCreate(data)     { _requireRole('editor'); return ContratoService.create(data); }
 function contratoUpdate(id, data) { _requireRole('editor'); return ContratoService.update(id, data); }
 function contratoDelete(id)       { _requireRole('editor'); return ContratoService.delete(id); }
 
-// Dashboard
 function getDashboardData() {
   try {
     _requireAccess();

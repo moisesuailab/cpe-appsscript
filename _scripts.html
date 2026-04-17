@@ -56,6 +56,7 @@
       usersPerPage:         10,
       editingUser:          { email: '', role: ROLES.VIEWER },
       usersUltimaConsulta:  null,
+      usersLoaded:          false,
 
       initUsers() {
         ['userSearch', 'userRoleFilter', 'usersSortBy', 'usersSortDir'].forEach(w => {
@@ -65,7 +66,7 @@
         this.$watch('usersPerPage', () => { this.$nextTick(() => lucide.createIcons()); });
 
         window.addEventListener('app:navigate', (e) => {
-          if (e.detail.viewId === 'usuarios' && this.users.length === 0) this.loadUsers();
+          if (e.detail.viewId === 'usuarios' && !this.usersLoaded) this.loadUsers();
         });
       },
 
@@ -73,7 +74,8 @@
         Loading.show('Carregando usuários...');
         google.script.run
           .withSuccessHandler((data) => {
-            this.users = data || [];
+            this.users               = data || [];
+            this.usersLoaded         = true;
             this.usersUltimaConsulta = this._agora();
             Loading.hide();
             this.$nextTick(() => lucide.createIcons());
@@ -234,8 +236,6 @@
         this.$nextTick(() => lucide.createIcons());
       },
 
-      // --- Grupo ---
-
       openAddGrupo() {
         this.novoGrupo = { nome: '', descricao: '' };
         this.openModal({ title: 'Novo Grupo', size: 'sm', contentKey: 'addGrupo', confirmLabel: 'Criar', onConfirm: () => this.saveAddGrupo() });
@@ -304,7 +304,6 @@
         });
       },
 
-      // --- Órgão ---
 
       openAddOrgao() {
         this.novoOrgao = { nome: '' };
@@ -374,7 +373,6 @@
         });
       },
 
-      // --- Cargo ---
 
       openAddCargo() {
         this.novoCargo = { nome: '', tipo: 'titular' };
@@ -462,7 +460,6 @@
           .cargoSetPresidente(cargo.id);
       },
 
-      // --- Ocupação ---
 
       openVincularMagistrado(cargo) {
         this.novaOcupacao = { id_cargo: cargo.id, id_magistrado: '' };
@@ -512,7 +509,6 @@
         });
       },
 
-      // --- Helpers ---
 
       getOcupacaoAtiva(idCargo) {
         return this.ocupacoes.find(o => String(o.id_cargo) === String(idCargo)) || null;
@@ -532,10 +528,6 @@
       getMagistradoNome(idMagistrado) {
         const m = this.magistrados.find(m => String(m.id) === String(idMagistrado));
         return m ? m.nome : '—';
-      },
-
-      _agora() {
-        return new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
       },
     };
   }
@@ -824,9 +816,6 @@
         return d.length === 10 || d.length === 11;
       },
 
-      _agora() {
-        return new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
-      },
     };
   }
 
@@ -880,8 +869,12 @@
               this.magistrados    = c.magistrados    || [];
               this.estagiosList   = c.estagiarios    || [];
               this.contratos      = c.contratos      || [];
-              this.vagasLoaded         = true;
-              this.vagasUltimaConsulta = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+              this.vagasUltimaConsulta       = this._agora();
+              this.vagasLoaded               = true;
+              this.contratosLoaded           = true;
+              this.estagiariosLoaded         = true;
+              this.contratosUltimaConsulta   = this.vagasUltimaConsulta;
+              this.estagiariosUltimaConsulta = this.vagasUltimaConsulta;
             } else Toast.error(res.message);
             this.$nextTick(() => lucide.createIcons());
           })
@@ -1118,8 +1111,10 @@
               this.setores        = c.setores      || [];
               this.contratosLoaded           = true;
               this.estagiariosLoaded         = true;
+              this.vagasLoaded               = true;
               this.contratosUltimaConsulta   = this._agora();
               this.estagiariosUltimaConsulta = this._agora();
+              this.vagasUltimaConsulta       = this._agora();
             } else Toast.error(res.message);
             this.$nextTick(() => lucide.createIcons());
           })
@@ -1296,9 +1291,6 @@
         });
       },
 
-      _agora() {
-        return new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
-      },
     };
   }
 
@@ -1608,6 +1600,10 @@
       userRole:         DATA.userRole,
       alertasCount: 0,
       alertasMuted: DATA.alertasMuted || false,
+
+      _agora() {
+        return new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+      },
 
       init() {
         this._buildNavItems();
