@@ -1,9 +1,8 @@
 const UserService = {
-  _KEY: 'USER_ROLES',
   _LIMIT_BYTES: 8000,
 
   getAll() {
-    const raw = PropertiesService.getScriptProperties().getProperty(this._KEY) || '{}';
+    const raw = PropertiesService.getScriptProperties().getProperty(CONFIG._KEYS.USER_ROLES_PROP) || '{}';
     try {
       const roles = JSON.parse(raw);
       return Object.entries(roles).map(([email, role]) => ({ email, role }));
@@ -101,7 +100,7 @@ const UserService = {
   },
 
   _loadRaw() {
-    const raw = PropertiesService.getScriptProperties().getProperty(this._KEY) || '{}';
+    const raw = PropertiesService.getScriptProperties().getProperty(CONFIG._KEYS.USER_ROLES_PROP) || '{}';
     try { return JSON.parse(raw); } catch { return {}; }
   },
 
@@ -113,6 +112,6 @@ const UserService = {
         `Para escalar além disso, migre os usuários para uma aba da planilha.`
       );
     }
-    PropertiesService.getScriptProperties().setProperty(this._KEY, serialized);
+    PropertiesService.getScriptProperties().setProperty(CONFIG._KEYS.USER_ROLES_PROP, serialized);
   },
 };

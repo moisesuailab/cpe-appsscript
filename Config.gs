@@ -49,6 +49,20 @@ const CONFIG = {
     DASHBOARD:      'dashboard',
   },
 
+  DASHBOARD_ROWS: {
+    ULTIMO_RECALCULO:      0,
+    TOTAL_VAGAS:           1,
+    VAGAS_OCUPADAS:        2,
+    VAGAS_OCIOSAS:         3,
+    VAGAS_ALOCADAS_ORGAO:  4,
+    VAGAS_ALOCADAS_SETOR:  5,
+    CONTRATOS_VENCENDO_30: 9,
+    CONTRATOS_VENCENDO_60: 10,
+    VAGAS_GRADUACAO:       11,
+    VAGAS_POS_GRADUACAO:   12,
+    VAGAS_INDEFINIDAS:     13,
+  },
+
   COLUMNS: {
     logs:           ['id', 'timestamp', 'userEmail', 'userName', 'action', 'entity', 'entityId', 'description'],
     grupos:         ['id', 'nome', 'descricao'],

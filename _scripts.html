@@ -216,6 +216,7 @@
               this.magistrados = c.magistrados || [];
               this.composicaoLoaded         = true;
               this.composicaoUltimaConsulta = this._agora();
+              this.magistradosLoaded = true;
             } else Toast.error(res.message);
             this.$nextTick(() => lucide.createIcons());
           })
@@ -539,6 +540,7 @@
       magistradosSortDir: 'asc',
       magistradosPage:    1,
       magistradosPerPage: 10,
+      magistradosLoaded:  false,
 
       novoMagistrado:  { nome: '', matricula: '', cidade: '' },
       editMagistrado:  { id: '', nome: '', matricula: '', cidade: '' },
@@ -552,7 +554,7 @@
         this.$watch('magistradosPerPage', () => { this.$nextTick(() => lucide.createIcons()); });
 
         window.addEventListener('app:navigate', (e) => {
-          if (e.detail.viewId === 'magistrados' && !this.composicaoLoaded) this.loadComposicao('Carregando magistrados...');
+          if (e.detail.viewId === 'magistrados' && !this.magistradosLoaded) this.loadComposicao('Carregando magistrados...');
         });
       },
 
@@ -669,6 +671,8 @@
               this.contratos       = c.contratos   || [];
               this.estagiariosLoaded         = true;
               this.estagiariosUltimaConsulta = this._agora();
+              this.contratosLoaded           = true;
+              this.contratosUltimaConsulta   = this._agora();
             } else Toast.error(res.message);
             this.$nextTick(() => lucide.createIcons());
           })
@@ -1475,7 +1479,7 @@
       },
 
       _recalcularDashboard() {
-        if (!this.dashboardLoaded || (!this.vagasLoaded && !this.contratosLoaded)) return;
+        if (!this.dashboardLoaded || !this.vagasLoaded || !this.contratosLoaded) return;
         const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
         const d30  = new Date(hoje); d30.setDate(d30.getDate() + 30);
         const d60  = new Date(hoje); d60.setDate(d60.getDate() + 60);

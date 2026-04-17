@@ -11,7 +11,7 @@
         </p>
       </div>
       <div class="flex flex-wrap gap-2 w-full sm:w-auto">
-        <button class="btn-outline flex-1 sm:flex-none justify-center" @click="loadComposicao()">
+        <button class="btn-outline flex-1 sm:flex-none justify-center" @click="composicaoLoaded = false; magistradosLoaded = false; loadComposicao()">
           <i data-lucide="refresh-cw" class="w-4 h-4"></i>
           Atualizar
         </button>

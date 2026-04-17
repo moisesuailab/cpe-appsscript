@@ -10,7 +10,7 @@
         </p>
       </div>
       <div class="flex flex-wrap gap-2 w-full sm:w-auto">
-        <button class="btn-outline flex-1 sm:flex-none justify-center" @click="loadEstagiarios()">
+        <button class="btn-outline flex-1 sm:flex-none justify-center" @click="estagiariosLoaded = false; contratosLoaded = false; loadEstagiarios()">
           <i data-lucide="refresh-cw" class="w-4 h-4"></i>
           Atualizar
         </button>
