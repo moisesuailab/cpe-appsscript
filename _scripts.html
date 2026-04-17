@@ -1,7 +1,7 @@
 <script defer src="https://unpkg.com/alpinejs@3.14.9/dist/cdn.min.js"></script>
 
 <script>
-  const DATA = (typeof INITIAL_DATA !== 'undefined') ? INITIAL_DATA : { userEmail: 'user@exemplo.com', alertasCount: 0, userRole: 'viewer' };
+  const DATA = (typeof INITIAL_DATA !== 'undefined') ? INITIAL_DATA : { userEmail: 'user@exemplo.com', alertasCount: 0, userRole: 'viewer', notificacoesAtivas: true };
 
   const ROLES = {
     ADMIN:  'admin',
@@ -1428,7 +1428,7 @@
           { id: 'magistrados',  label: 'Magistrados',  icon: lucideIcon('gavel'),             badge: null,                                    roles: [ROLES.ADMIN] },
           { id: 'composicao',   label: 'Composição',   icon: lucideIcon('network'),           badge: null,                                    roles: [ROLES.ADMIN] },
           { id: 'usuarios',     label: 'Usuários',     icon: lucideIcon('users'),             badge: null,                                    roles: [ROLES.ADMIN] },
-          { id: 'alertas',      label: 'Alertas',      icon: lucideIcon('bell'),              badge: this.alertasMuted ? null : this.badgeLabel(this.alertasCount), roles: null },
+          { id: 'alertas',      label: 'Alertas',      icon: lucideIcon('bell'),              badge: this.notificacoesAtivas ? this.badgeLabel(this.alertasCount) : null, roles: null },
           { id: 'configuracoes',label: 'Configurações',icon: lucideIcon('settings'),          badge: null,                                                          roles: null },
         ];
         this.navItems = all.filter(item => !item.roles || item.roles.includes(this.userRole));
@@ -1603,7 +1603,7 @@
       userInitial:      (DATA.userDisplayName || DATA.userEmail).charAt(0).toUpperCase(),
       userRole:         DATA.userRole,
       alertasCount: 0,
-      alertasMuted: DATA.alertasMuted || false,
+      notificacoesAtivas: DATA.notificacoesAtivas !== false,
 
       _agora() {
         return new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
@@ -1629,18 +1629,18 @@
       canEdit()  { return [ROLES.ADMIN, ROLES.EDITOR].includes(this.userRole); },
       canAdmin() { return this.userRole === ROLES.ADMIN; },
 
-      toggleAlertasMuted() {
-        this.alertasMuted = !this.alertasMuted;
+      toggleNotificacoesAtivas() {
+        this.notificacoesAtivas = !this.notificacoesAtivas;
         const item = this.navItems.find(i => i.id === 'alertas');
-        if (item) item.badge = this.alertasMuted ? null : this.badgeLabel(this.alertasCount);
+        if (item) item.badge = this.notificacoesAtivas ? this.badgeLabel(this.alertasCount) : null;
         google.script.run
           .withSuccessHandler(() => {})
           .withFailureHandler(() => {
-            this.alertasMuted = !this.alertasMuted;
-            if (item) item.badge = this.alertasMuted ? null : this.badgeLabel(this.alertasCount);
+            this.notificacoesAtivas = !this.notificacoesAtivas;
+            if (item) item.badge = this.notificacoesAtivas ? this.badgeLabel(this.alertasCount) : null;
             Toast.error('Falha ao salvar preferência.');
           })
-          .setAlertasMuted(this.alertasMuted);
+          .setNotificationsEnabled(this.notificacoesAtivas);
       },
 
       roleLabel(role) { return ROLES.label(role); },

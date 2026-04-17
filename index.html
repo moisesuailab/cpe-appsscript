@@ -17,7 +17,7 @@
       userEmail:       JSON.parse("<?= JSON.stringify(userEmail) ?>"),
       userDisplayName: JSON.parse("<?= JSON.stringify(userDisplayName) ?>"),
       userPhotoUrl:    JSON.parse("<?= JSON.stringify(userPhotoUrl) ?>"),
-      alertasMuted:    JSON.parse("<?= JSON.stringify(alertasMuted) ?>"),
+      notificacoesAtivas:    JSON.parse("<?= JSON.stringify(notificacoesAtivas) ?>"),
     };
   </script>
 
@@ -215,7 +215,7 @@
                 @click="navigate('alertas')"
                 title="Ver alertas">
           <i data-lucide="bell" class="w-4 h-4"></i>
-          <template x-if="alertasCount > 0 && !alertasMuted">
+          <template x-if="alertasCount > 0 && notificacoesAtivas">
             <span class="absolute -top-2 -right-2 badge badge-danger" x-text="badgeLabel(alertasCount)"></span>
           </template>
         </button>

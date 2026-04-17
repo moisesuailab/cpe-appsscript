@@ -10,7 +10,7 @@ function doGet(e) {
     userPhotoUrl:    profile.photoUrl,
     appName:         CONFIG.APP_NAME,
     appSubtitle:     CONFIG.APP_SUBTITLE || 'Subtítulo da aplicação',
-    alertasMuted:    UserService.getAlertasMuted(),
+    notificacoesAtivas:    UserService.getNotificationsEnabled(),
   });
 }
 
@@ -71,8 +71,8 @@ function genericUpdate(sheetName, id, data) { _requireRole('editor'); return Ent
 function genericDelete(sheetName, id) { _requireRole('admin'); return EntityService.delete(sheetName, id); }
 
 // Preferências de usuário — qualquer role autenticado
-function getAlertasMuted()        { _requireAccess(); return UserService.getAlertasMuted(); }
-function setAlertasMuted(value)   { _requireAccess(); UserService.setAlertasMuted(value); }
+function getNotificationsEnabled()        { _requireAccess(); return UserService.getNotificationsEnabled(); }
+function setNotificationsEnabled(value)   { _requireAccess(); UserService.setNotificationsEnabled(value); }
 
 // Gestão de usuários — somente admin
 function userGetAll() { _requireRole('admin'); return UserService.getAll(); }

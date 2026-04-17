@@ -91,12 +91,12 @@ const UserService = {
     }
   },
 
-  getAlertasMuted() {
-    return PropertiesService.getUserProperties().getProperty('app_alertas_muted') === 'true';
+  getNotificationsEnabled() {
+    return PropertiesService.getUserProperties().getProperty('app_notificacoes_ativas') !== 'false';
   },
 
-  setAlertasMuted(value) {
-    PropertiesService.getUserProperties().setProperty('app_alertas_muted', value ? 'true' : 'false');
+  setNotificationsEnabled(value) {
+    PropertiesService.getUserProperties().setProperty('app_notificacoes_ativas', value ? 'true' : 'false');
   },
 
   _loadRaw() {

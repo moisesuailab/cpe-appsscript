@@ -91,11 +91,11 @@
 
       <div class="flex items-center justify-between gap-4">
         <div>
-          <p class="text-sm text-text-main">Desabilitar notificações</p>
-          <p class="text-xs text-text-muted mt-0.5">Oculta o contador de alertas no menu e no botão de sino.</p>
+          <p class="text-sm text-text-main">Receber notificações</p>
+          <p class="text-xs text-text-muted mt-0.5">Exibe o contador de alertas no menu lateral e no botão de sino.</p>
         </div>
         <label class="toggle-switch flex-shrink-0">
-          <input type="checkbox" :checked="alertasMuted" @change="toggleAlertasMuted()">
+          <input type="checkbox" :checked="notificacoesAtivas" @change="toggleNotificacoesAtivas()">
           <span class="toggle-track"></span>
         </label>
       </div>
