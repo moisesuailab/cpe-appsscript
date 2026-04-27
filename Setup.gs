@@ -129,6 +129,50 @@ const Setup = {
     }
   },
 
+  _formatDashboardSheet(sheet) {
+    sheet.getBandings().forEach(b => b.remove());
+
+    const numRows = 14;
+
+    sheet.getRange(1, 1, numRows, 1)
+      .setBackground('#2C5282')
+      .setFontColor('#FFFFFF')
+      .setFontWeight('bold');
+
+    sheet.getRange(1, 2, numRows, 1)
+      .setBackground('#FFFFFF')
+      .setFontColor('#2D3748')
+      .setFontWeight('normal');
+
+    sheet.getRange(1, 1, numRows, 2)
+      .setBorder(true, true, true, true, true, true, '#CBD5E0', SpreadsheetApp.BorderStyle.SOLID);
+
+    sheet.autoResizeColumns(1, 2);
+  },
+
+  _formatDataSheet(sheet, numCols) {
+    sheet.getBandings().forEach(b => b.remove());
+
+    const lastRow = Math.max(sheet.getMaxRows(), 2);
+
+    const banding = sheet.getRange(1, 1, lastRow, numCols)
+      .applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY);
+    banding.setHeaderRowColor('#2C5282');
+    banding.setFirstRowColor('#FFFFFF');
+    banding.setSecondRowColor('#F7FAFC');
+    banding.setFooterRowColor(null);
+
+    sheet.getRange(1, 1, 1, numCols)
+      .setFontColor('#FFFFFF')
+      .setFontWeight('bold');
+
+    sheet.getRange(1, 1, lastRow, numCols)
+      .setBorder(true, true, true, true, true, true, '#CBD5E0', SpreadsheetApp.BorderStyle.SOLID);
+
+    sheet.setFrozenRows(1);
+    sheet.autoResizeColumns(1, numCols);
+  },
+
   init() {
     if (!this._validateConfig()) return;
 
@@ -449,6 +493,56 @@ const Setup = {
     console.log('[RESET] Execute setupReset() novamente nos proximos 60 segundos para confirmar.');
     console.log('============================================================');
   },
+
+  formatSheets() {
+    const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+    if (!spreadsheetId) {
+      console.error('[ERRO] SPREADSHEET_ID nao configurado. Execute setupInit() primeiro.');
+      return;
+    }
+
+    const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+    console.log('============================================================');
+    console.log('  SETUP — Aplicando formatacao visual nas abas');
+    console.log('============================================================');
+
+    const dataSheets = [
+      { name: CONFIG.SHEETS.LOGS,           columns: CONFIG.COLUMNS.logs           },
+      { name: CONFIG.SHEETS.GRUPOS,         columns: CONFIG.COLUMNS.grupos         },
+      { name: CONFIG.SHEETS.ORGAOS,         columns: CONFIG.COLUMNS.orgaos         },
+      { name: CONFIG.SHEETS.CARGOS,         columns: CONFIG.COLUMNS.cargos         },
+      { name: CONFIG.SHEETS.OCUPACOES,      columns: CONFIG.COLUMNS.ocupacoes      },
+      { name: CONFIG.SHEETS.MAGISTRADOS,    columns: CONFIG.COLUMNS.magistrados    },
+      { name: CONFIG.SHEETS.SETORES,        columns: CONFIG.COLUMNS.setores        },
+      { name: CONFIG.SHEETS.GESTORES_SETOR, columns: CONFIG.COLUMNS.gestores_setor },
+      { name: CONFIG.SHEETS.ESTAGIARIOS,    columns: CONFIG.COLUMNS.estagiarios    },
+      { name: CONFIG.SHEETS.CONTRATOS,      columns: CONFIG.COLUMNS.contratos      },
+      { name: CONFIG.SHEETS.VAGAS,          columns: CONFIG.COLUMNS.vagas          },
+    ];
+
+    dataSheets.forEach(({ name, columns }) => {
+      const sheet = spreadsheet.getSheetByName(name);
+      if (!sheet) {
+        console.log('[SKIP] Aba "' + name + '" nao encontrada.');
+        return;
+      }
+      this._formatDataSheet(sheet, columns.length);
+      console.log('[OK] Aba "' + name + '" formatada.');
+    });
+
+    const dashboardSheet = spreadsheet.getSheetByName(CONFIG.SHEETS.DASHBOARD);
+    if (dashboardSheet) {
+      this._formatDashboardSheet(dashboardSheet);
+      console.log('[OK] Aba "dashboard" formatada.');
+    } else {
+      console.log('[SKIP] Aba "dashboard" nao encontrada.');
+    }
+
+    SpreadsheetApp.flush();
+    console.log('------------------------------------------------------------');
+    console.log('[FORMATACAO CONCLUIDA] Todas as abas foram formatadas.');
+    console.log('============================================================');
+  },
 };
 
 function setupInit() { Setup.init(); }
@@ -459,3 +553,4 @@ function setupClearSheetIdProperties() { Setup.clearSheetIdProperties(); }
 function setupReset() { Setup.reset(); }
 function triggerRecalcularFormulas() { Setup.triggerRecalcularFormulas(); }
 function setupTrigger() { Setup.setupTrigger(); }
+function setupFormatSheets() { Setup.formatSheets(); }
