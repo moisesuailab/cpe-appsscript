@@ -164,6 +164,8 @@ Todas carregadas via CDN externo no momento em que o usuário acessa a ferrament
 | Lucide Icons | 1.8.0 | Biblioteca de ícones |
 | Tippy.js | 6 | Tooltips e popovers |
 | Popper.js | 2.11.8 | Posicionamento dos tooltips (dependência do Tippy.js) |
+| jsPDF | 2.5.1 | Geração de PDF no browser (exportação de relatórios) |
+| jsPDF-AutoTable | 3.8.2 | Plugin de tabelas para o jsPDF |
 | Google Fonts | - | Tipografia (fontes Inter e Outfit) |
 
 > **Atenção para quem for evoluir a ferramenta**: a interface depende dessas bibliotecas externas. Se alguma CDN ficar indisponível, partes da interface podem deixar de funcionar. Embora seja tecnicamente possível incluir as bibliotecas diretamente no projeto (vendorização), isso aumentaria o payload que o Apps Script precisa montar e entregar antes de responder ao browser, piorando o cold start, que já é o maior ponto de latência da plataforma. A alternativa mais equilibrada é hospedar os arquivos das bibliotecas em um repositório público no GitHub e servi-los via jsDelivr, que atua como CDN sobre o GitHub sem necessidade de cadastro ou publicação em registros externos. O formato da URL seria `cdn.jsdelivr.net/gh/{usuario}/{repositorio}@{versão}/{arquivo}`. Essa abordagem mantém a performance das CDNs externas e elimina a dependência de terceiros fora do controle do projeto.
@@ -226,6 +228,14 @@ setupVerify()
 ```
 
 Corrija qualquer item com `[ERRO]` antes de continuar.
+
+### 3.1. Formatar abas da planilha (opcional)
+
+```
+setupFormatSheets()
+```
+
+Aplica formatação visual consistente em todas as abas: cabeçalho colorido, linhas alternadas e bordas. Pode ser executada a qualquer momento e é idempotente — re-executar não duplica formatação.
 
 ### 4. Publicar como aplicativo web
 
