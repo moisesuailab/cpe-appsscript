@@ -39,9 +39,9 @@ const CargoService = {
   update(id, data) {
     const result = EntityService.update(this._SHEET, id, data, this._rulesUpdate, () => {
       if (data.tipo) ValidationService.validate({ tipo: data.tipo }, { tipo: [['inList', this._TIPOS]] });
-      const cargo = CrudRepository.findById(this._SHEET, id);
-      const idOrgao = data.id_orgao || cargo.id_orgao;
       const cargos = CrudRepository.findAll(this._SHEET);
+      const cargo = cargos.find(c => String(c.id) === String(id));
+      const idOrgao = data.id_orgao || cargo?.id_orgao;
       this._assertNomeUnico(cargos, data.nome, idOrgao, id);
     });
     if (result.status === 'success') {
@@ -64,10 +64,10 @@ const CargoService = {
 
   setPresidente(id) {
     try {
-      const cargo = CrudRepository.findById(this._SHEET, id);
+      const cargos = CrudRepository.findAll(this._SHEET);
+      const cargo = cargos.find(c => String(c.id) === String(id));
       if (!cargo) throw new Error(`Cargo com ID '${id}' não encontrado.`);
 
-      const cargos = CrudRepository.findAll(this._SHEET);
       const presidenteAtual = cargos.find(c =>
         String(c.id_orgao) === String(cargo.id_orgao) &&
         String(c.is_presidente) === 'TRUE' &&
