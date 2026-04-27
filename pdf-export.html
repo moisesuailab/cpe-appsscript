@@ -1,0 +1,139 @@
+<script>
+  const PDF_INSTITUTION = 'CPE - Gestão de Vagas de Estágio';
+
+  function formatDateTimeBrPdf(date) {
+    return date.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+  }
+
+  function _pdfDrawHeader(doc, title) {
+    var pageW = doc.internal.pageSize.width;
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(44, 82, 130);
+    doc.text(PDF_INSTITUTION, pageW / 2, 13, { align: 'center' });
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0);
+    doc.text(title, 14, 21);
+
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(120);
+    doc.text('Gerado em: ' + formatDateTimeBrPdf(new Date()), 14, 28);
+  }
+
+  function exportToPdf({ title, columns, rows, filename, landscape = false, meta = null }) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: landscape ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
+
+    _pdfDrawHeader(doc, title);
+
+    let tableStartY = 33;
+    if (meta) {
+      const totalLabel = meta.total + (meta.total === 1 ? ' registro exportado' : ' registros exportados');
+      doc.text(totalLabel, 14, 34);
+      tableStartY = 40;
+      if (meta.filters && meta.filters.length > 0) {
+        doc.text('Filtros: ' + meta.filters.join(' · '), 14, 39);
+        tableStartY = 45;
+      }
+    }
+    doc.setTextColor(0);
+
+    doc.autoTable({
+      head: [columns.map(c => c.header)],
+      body: rows.map(row => columns.map(c => {
+        const val = c.value(row);
+        return (val === null || val === undefined || val === '') ? '—' : String(val);
+      })),
+      startY: tableStartY,
+      styles: {
+        font: 'helvetica',
+        fontSize: 8,
+        cellPadding: 3,
+        overflow: 'linebreak',
+      },
+      headStyles: {
+        fillColor: [44, 82, 130],
+        textColor: 255,
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [247, 250, 252],
+      },
+      didDrawPage: function(data) {
+        const pageCount = doc.internal.getNumberOfPages();
+        doc.setFontSize(7);
+        doc.setTextColor(150);
+        doc.text(
+          'Página ' + data.pageNumber + ' de ' + pageCount,
+          doc.internal.pageSize.width - 14,
+          doc.internal.pageSize.height - 8,
+          { align: 'right' }
+        );
+        doc.setTextColor(0);
+      },
+    });
+
+    doc.save(filename);
+  }
+
+  function exportDashboardToPdf({ title, kpis, alertas30, alertas60, getEstagiarioNome, getVagaCodigo }) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    _pdfDrawHeader(doc, title);
+    doc.setTextColor(0);
+
+    doc.autoTable({
+      head: [['Indicador', 'Valor']],
+      body: kpis.map(function(kpi) { return [kpi.label, String(kpi.value)]; }),
+      startY: 33,
+      styles: { font: 'helvetica', fontSize: 8, cellPadding: 3 },
+      headStyles: { fillColor: [44, 82, 130], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [247, 250, 252] },
+      columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 30, halign: 'center', fontStyle: 'bold' } },
+    });
+
+    const todosAlertas = [
+      ...alertas30.map(function(c) { return Object.assign({ urgencia: 'Vence em até 30 dias' }, c); }),
+      ...alertas60.map(function(c) { return Object.assign({ urgencia: 'Vence em até 60 dias' }, c); }),
+    ];
+
+    if (todosAlertas.length > 0) {
+      let y = doc.lastAutoTable.finalY + 8;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Alertas de Contratos', 14, y);
+      y += 4;
+
+      doc.autoTable({
+        head: [['Urgência', 'Estagiário', 'Vaga', 'Vencimento']],
+        body: todosAlertas.map(function(c) {
+          const fim = c.data_fim ? new Date(c.data_fim + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
+          return [c.urgencia, getEstagiarioNome(c), getVagaCodigo(c), fim];
+        }),
+        startY: y,
+        styles: { font: 'helvetica', fontSize: 8, cellPadding: 3 },
+        headStyles: { fillColor: [44, 82, 130], textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [247, 250, 252] },
+        didDrawPage: function(data) {
+          const pageCount = doc.internal.getNumberOfPages();
+          doc.setFontSize(7);
+          doc.setTextColor(150);
+          doc.text(
+            'Página ' + data.pageNumber + ' de ' + pageCount,
+            doc.internal.pageSize.width - 14,
+            doc.internal.pageSize.height - 8,
+            { align: 'right' }
+          );
+          doc.setTextColor(0);
+        },
+      });
+    }
+
+    doc.save('dashboard.pdf');
+  }
+</script>

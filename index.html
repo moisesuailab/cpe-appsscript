@@ -25,6 +25,8 @@
   <script src="https://unpkg.com/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
   <script src="https://unpkg.com/tippy.js@6/dist/tippy-bundle.umd.min.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
   <?!= include('_styles') ?>
 </head>
@@ -236,6 +238,7 @@
     </main>
   </div>
 
+  <?!= include('pdf-export') ?>
   <?!= include('_scripts') ?>
 
 </body>

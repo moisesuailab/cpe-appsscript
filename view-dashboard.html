@@ -7,10 +7,22 @@
         <i data-lucide="clock" class="w-3 h-3"></i>
         Atualizado em <span x-text="dashboardUltimaConsulta"></span>
       </p>
-      <button class="btn-outline flex-shrink-0" @click="dashboardLoaded = false; loadDashboard()">
-        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-        <span class="db-refresh-label">Atualizar</span>
-      </button>
+      <div class="flex gap-2">
+        <button class="btn-outline flex-shrink-0" @click="dashboardLoaded = false; loadDashboard()">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          <span class="db-refresh-label">Atualizar</span>
+        </button>
+        <template x-if="canEdit()">
+          <button class="btn-outline flex-shrink-0"
+                  @click="exportarPdfDashboard()"
+                  :disabled="exportandoPdf || !dashboard"
+                  :title="!dashboard ? 'Aguarde o carregamento dos dados' : ''">
+            <i data-lucide="loader-2" class="w-4 h-4 animate-spin" x-show="exportandoPdf"></i>
+            <i data-lucide="download" class="w-4 h-4" x-show="!exportandoPdf"></i>
+            <span x-text="exportandoPdf ? 'Gerando...' : 'Exportar PDF'"></span>
+          </button>
+        </template>
+      </div>
     </div>
 
     <!-- Seção 1 — KPI cards de vagas -->

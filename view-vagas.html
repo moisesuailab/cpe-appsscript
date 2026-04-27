@@ -15,6 +15,16 @@
           Atualizar
         </button>
         <template x-if="canEdit()">
+          <button class="btn-outline flex-1 sm:flex-none justify-center"
+                  @click="exportarPdfVagas()"
+                  :disabled="exportandoPdf || !vagasFiltradas.length"
+                  :title="!vagasFiltradas.length ? 'Nenhum dado para exportar' : ''">
+            <i data-lucide="loader-2" class="w-4 h-4 animate-spin" x-show="exportandoPdf"></i>
+            <i data-lucide="download" class="w-4 h-4" x-show="!exportandoPdf"></i>
+            <span x-text="exportandoPdf ? 'Gerando...' : 'Exportar PDF'"></span>
+          </button>
+        </template>
+        <template x-if="canEdit()">
           <button class="btn-primary flex-1 sm:flex-none justify-center" @click="openAddVaga()">
             <i data-lucide="plus" class="w-4 h-4"></i>
             Nova Vaga

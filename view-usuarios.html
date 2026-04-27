@@ -15,6 +15,16 @@
           <i data-lucide="refresh-cw" class="w-4 h-4"></i>
           Atualizar
         </button>
+        <template x-if="canEdit()">
+          <button class="btn-outline flex-1 sm:flex-none justify-center"
+                  @click="exportarPdfUsuarios()"
+                  :disabled="exportandoPdf || !usersFiltered.length"
+                  :title="!usersFiltered.length ? 'Nenhum dado para exportar' : ''">
+            <i data-lucide="loader-2" class="w-4 h-4 animate-spin" x-show="exportandoPdf"></i>
+            <i data-lucide="download" class="w-4 h-4" x-show="!exportandoPdf"></i>
+            <span x-text="exportandoPdf ? 'Gerando...' : 'Exportar PDF'"></span>
+          </button>
+        </template>
         <button class="btn-primary flex-1 sm:flex-none justify-center"
                 @click="openModal({
                   title: 'Adicionar Usuário',

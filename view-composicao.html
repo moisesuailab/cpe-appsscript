@@ -15,6 +15,16 @@
           <i data-lucide="refresh-cw" class="w-4 h-4"></i>
           Atualizar
         </button>
+        <template x-if="canEdit()">
+          <button class="btn-outline flex-1 sm:flex-none justify-center"
+                  @click="exportarPdfComposicao()"
+                  :disabled="exportandoPdf || !grupos.length"
+                  :title="!grupos.length ? 'Nenhum dado para exportar' : ''">
+            <i data-lucide="loader-2" class="w-4 h-4 animate-spin" x-show="exportandoPdf"></i>
+            <i data-lucide="download" class="w-4 h-4" x-show="!exportandoPdf"></i>
+            <span x-text="exportandoPdf ? 'Gerando...' : 'Exportar PDF'"></span>
+          </button>
+        </template>
         <template x-if="canAdmin()">
           <button class="btn-primary flex-1 sm:flex-none justify-center" @click="openAddGrupo()">
             <i data-lucide="plus" class="w-4 h-4"></i>

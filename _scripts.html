@@ -1599,6 +1599,7 @@
       ...vagasModule(),
       ...contratosModule(),
       ...alertasModule(),
+      ...pdfModule(),
       ...configuracaoModule(),
       ...usersModule(),
       ...modalModule(),
@@ -1870,6 +1871,289 @@
       },
       get alertasPaged() {
         return ListUtils.paged(this.alertasFiltrados, this.alertasPage, this.alertasPerPage);
+      },
+    };
+  }
+
+  function pdfModule() {
+    return {
+      exportandoPdf: false,
+
+      exportarPdfContratos() {
+        if (!this.contratosFiltrados.length) return;
+        this.exportandoPdf = true;
+        const self = this;
+        setTimeout(function() {
+          exportToPdf({
+            title: 'Relatório de Contratos',
+            filename: 'contratos.pdf',
+            landscape: true,
+            columns: [
+              { header: 'Estagiário',  value: function(c) { return self.contratoEstagiarioNome(c); } },
+              { header: 'CPF',         value: function(c) {
+                  const e = self.estagiosList.find(function(x) { return String(x.id) === String(c.id_estagiario); });
+                  return e ? e.cpf : '—';
+                }
+              },
+              { header: 'Vaga',        value: function(c) { return self.contratoVagaCodigo(c); } },
+              { header: 'Tipo',        value: function(c) { return c.tipo_contrato === 'graduacao' ? 'Graduação' : 'Pós-Graduação'; } },
+              { header: 'Início',      value: function(c) { return c.data_inicio ? new Date(c.data_inicio + 'T00:00:00').toLocaleDateString('pt-BR') : '—'; } },
+              { header: 'Fim',         value: function(c) { return c.data_fim    ? new Date(c.data_fim    + 'T00:00:00').toLocaleDateString('pt-BR') : '—'; } },
+              { header: 'Status',      value: function(c) { return self.contratoStatus(c); } },
+            ],
+            rows: self.contratosFiltrados,
+            meta: (function() {
+              const f = [];
+              if (self.contratosSearch.trim()) f.push('Busca: "' + self.contratosSearch.trim() + '"');
+              if (self.contratosFiltroStatus) f.push('Status: ' + self.contratosFiltroStatus);
+              if (self.contratosFiltroTipo) f.push('Tipo: ' + (self.contratosFiltroTipo === 'graduacao' ? 'Graduação' : 'Pós-Graduação'));
+              return { total: self.contratosFiltrados.length, filters: f };
+            })(),
+          });
+          self.exportandoPdf = false;
+        }, 0);
+      },
+
+      exportarPdfEstagiarios() {
+        if (!this.estagiosFiltrados.length) return;
+        this.exportandoPdf = true;
+        const self = this;
+        setTimeout(function() {
+          exportToPdf({
+            title: 'Relatório de Estagiários',
+            filename: 'estagiarios.pdf',
+            landscape: false,
+            columns: [
+              { header: 'Nome',        value: function(e) { return e.nome; } },
+              { header: 'CPF',         value: function(e) { return e.cpf; } },
+              { header: 'Curso',       value: function(e) { return e.curso; } },
+              { header: 'Instituição', value: function(e) { return e.instituicao; } },
+              { header: 'E-mail',      value: function(e) { return e.email; } },
+              { header: 'Telefone',    value: function(e) { return e.telefone; } },
+            ],
+            rows: self.estagiosFiltrados,
+            meta: (function() {
+              const f = [];
+              if (self.estagiariosSearch.trim()) f.push('Busca: "' + self.estagiariosSearch.trim() + '"');
+              return { total: self.estagiosFiltrados.length, filters: f };
+            })(),
+          });
+          self.exportandoPdf = false;
+        }, 0);
+      },
+
+      exportarPdfVagas() {
+        if (!this.vagasFiltradas.length) return;
+        this.exportandoPdf = true;
+        const self = this;
+        setTimeout(function() {
+          exportToPdf({
+            title: 'Relatório de Vagas',
+            filename: 'vagas.pdf',
+            landscape: false,
+            columns: [
+              { header: 'Código',    value: function(v) { return self.vagaCodigo(v); } },
+              { header: 'Setor',     value: function(v) { return self.vagaSetorNome(v); } },
+              { header: 'Tipo',      value: function(v) {
+                  return { graduacao: 'Graduação', pos_graduacao: 'Pós-Graduação', indefinido: 'Indefinido' }[v.tipo_vaga] || v.tipo_vaga;
+                }
+              },
+              { header: 'Status',    value: function(v) {
+                  return v.status === 'alocada' ? 'Alocada' : 'Não alocada';
+                }
+              },
+              { header: 'Descrição', value: function(v) { return v.descricao; } },
+            ],
+            rows: self.vagasFiltradas,
+            meta: (function() {
+              const f = [];
+              if (self.vagasSearch.trim()) f.push('Busca: "' + self.vagasSearch.trim() + '"');
+              if (self.vagasFiltroTipo) f.push('Tipo: ' + ({ graduacao: 'Graduação', pos_graduacao: 'Pós-Graduação', indefinido: 'Indefinido' }[self.vagasFiltroTipo] || self.vagasFiltroTipo));
+              if (self.vagasFiltroStatus) f.push('Status: ' + (self.vagasFiltroStatus === 'alocada' ? 'Alocada' : 'Não alocada'));
+              return { total: self.vagasFiltradas.length, filters: f };
+            })(),
+          });
+          self.exportandoPdf = false;
+        }, 0);
+      },
+
+      exportarPdfMagistrados() {
+        if (!this.magistradosFiltrados.length) return;
+        this.exportandoPdf = true;
+        const self = this;
+        setTimeout(function() {
+          exportToPdf({
+            title: 'Relatório de Magistrados',
+            filename: 'magistrados.pdf',
+            landscape: false,
+            columns: [
+              { header: 'Nome',      value: function(m) { return m.nome; } },
+              { header: 'Matrícula', value: function(m) { return m.matricula; } },
+              { header: 'Cidade',    value: function(m) { return m.cidade; } },
+            ],
+            rows: self.magistradosFiltrados,
+            meta: (function() {
+              const f = [];
+              if (self.magistradoSearch.trim()) f.push('Busca: "' + self.magistradoSearch.trim() + '"');
+              return { total: self.magistradosFiltrados.length, filters: f };
+            })(),
+          });
+          self.exportandoPdf = false;
+        }, 0);
+      },
+
+      exportarPdfAlertas() {
+        if (!this.alertasFiltrados.length) return;
+        this.exportandoPdf = true;
+        const self = this;
+        setTimeout(function() {
+          const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+          exportToPdf({
+            title: 'Relatório de Alertas',
+            filename: 'alertas.pdf',
+            landscape: false,
+            columns: [
+              { header: 'Tipo',           value: function(item) {
+                  if (item._tipo === '30d')    return 'Vence em até 30 dias';
+                  if (item._tipo === '60d')    return 'Vence em até 60 dias';
+                  if (item._tipo === 'ociosa') return 'Vaga Ociosa';
+                  return '—';
+                }
+              },
+              { header: 'Descrição',      value: function(item) {
+                  if (item._tipo === 'ociosa') return self.vagaCodigo(item);
+                  return self.contratoEstagiarioNome(item) + ' — ' + self.contratoVagaCodigo(item);
+                }
+              },
+              { header: 'Vencimento',     value: function(item) {
+                  return item.data_fim ? new Date(item.data_fim + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
+                }
+              },
+              { header: 'Dias Restantes', value: function(item) {
+                  if (!item.data_fim) return '—';
+                  const fim = new Date(item.data_fim + 'T00:00:00'); fim.setHours(0, 0, 0, 0);
+                  const dias = Math.ceil((fim - hoje) / 86400000);
+                  return dias >= 0 ? String(dias) : '—';
+                }
+              },
+            ],
+            rows: self.alertasFiltrados,
+            meta: (function() {
+              const tipoLabels = { '30d': 'Crítico (≤30d)', '60d': 'Atenção (≤60d)', 'ociosas': 'Vagas ociosas' };
+              const f = self.alertasFiltroTipo ? ['Tipo: ' + (tipoLabels[self.alertasFiltroTipo] || self.alertasFiltroTipo)] : [];
+              return { total: self.alertasFiltrados.length, filters: f };
+            })(),
+          });
+          self.exportandoPdf = false;
+        }, 0);
+      },
+
+      exportarPdfUsuarios() {
+        if (!this.usersFiltered.length) return;
+        this.exportandoPdf = true;
+        const self = this;
+        setTimeout(function() {
+          exportToPdf({
+            title: 'Relatório de Usuários',
+            filename: 'usuarios.pdf',
+            landscape: false,
+            columns: [
+              { header: 'E-mail', value: function(u) { return u.email; } },
+              { header: 'Papel',  value: function(u) { return self.roleLabel(u.role); } },
+            ],
+            rows: self.usersFiltered,
+            meta: (function() {
+              const f = [];
+              if (self.userSearch.trim()) f.push('Busca: "' + self.userSearch.trim() + '"');
+              if (self.userRoleFilter) f.push('Papel: ' + self.roleLabel(self.userRoleFilter));
+              return { total: self.usersFiltered.length, filters: f };
+            })(),
+          });
+          self.exportandoPdf = false;
+        }, 0);
+      },
+
+      exportarPdfComposicao() {
+        this.exportandoPdf = true;
+        const self = this;
+        setTimeout(function() {
+          const rows = [];
+          self.grupos.forEach(function(g) {
+            const orgaosDoGrupo = self.orgaos.filter(function(o) { return String(o.id_grupo) === String(g.id); });
+            if (orgaosDoGrupo.length === 0) {
+              rows.push({ grupo: g.nome, orgao: '—', cargo: '—', tipo: '—', presidente: '—', magistrado: '—' });
+              return;
+            }
+            orgaosDoGrupo.forEach(function(o) {
+              const cargosDoOrgao = self.cargos.filter(function(c) { return String(c.id_orgao) === String(o.id); });
+              if (cargosDoOrgao.length === 0) {
+                rows.push({ grupo: g.nome, orgao: o.nome, cargo: '—', tipo: '—', presidente: '—', magistrado: '—' });
+                return;
+              }
+              cargosDoOrgao.forEach(function(c) {
+                const ocup = self.ocupacoes.find(function(oc) {
+                  return String(oc.id_cargo) === String(c.id) && !oc.data_fim;
+                });
+                const mag = ocup
+                  ? self.magistrados.find(function(m) { return String(m.id) === String(ocup.id_magistrado); })
+                  : null;
+                const tipoMap = { titular: 'Titular', suplente: 'Suplente', substituto: 'Substituto' };
+                rows.push({
+                  grupo:      g.nome,
+                  orgao:      o.nome,
+                  cargo:      c.nome,
+                  tipo:       tipoMap[c.tipo] || c.tipo,
+                  presidente: c.is_presidente ? 'Sim' : 'Não',
+                  magistrado: mag ? mag.nome : '—',
+                });
+              });
+            });
+          });
+
+          if (!rows.length) { self.exportandoPdf = false; return; }
+
+          exportToPdf({
+            title: 'Relatório de Composição',
+            filename: 'composicao.pdf',
+            landscape: true,
+            columns: [
+              { header: 'Grupo',      value: function(r) { return r.grupo; } },
+              { header: 'Órgão',      value: function(r) { return r.orgao; } },
+              { header: 'Cargo',      value: function(r) { return r.cargo; } },
+              { header: 'Tipo',       value: function(r) { return r.tipo; } },
+              { header: 'Presidente', value: function(r) { return r.presidente; } },
+              { header: 'Magistrado', value: function(r) { return r.magistrado; } },
+            ],
+            rows: rows,
+            meta: { total: rows.length, filters: [] },
+          });
+          self.exportandoPdf = false;
+        }, 0);
+      },
+
+      exportarPdfDashboard() {
+        if (!this.dashboard) return;
+        this.exportandoPdf = true;
+        const self = this;
+        setTimeout(function() {
+          exportDashboardToPdf({
+            title: 'Dashboard — Resumo Geral',
+            kpis: [
+              { label: 'Total de Vagas',        value: self.dashboard.totalVagas         ?? '—' },
+              { label: 'Vagas Ocupadas',         value: self.dashboard.vagasOcupadas      ?? '—' },
+              { label: 'Vagas Ociosas',          value: self.dashboard.vagasOciosas       ?? '—' },
+              { label: 'Alocadas a Órgão',       value: self.dashboard.vagasAlocadasOrgao ?? '—' },
+              { label: 'Alocadas no Setor',      value: self.dashboard.vagasAlocadasSetor ?? '—' },
+              { label: 'Contratos Vencendo 30d', value: self.dashboard.contratosVencendo30d ?? '—' },
+              { label: 'Contratos Vencendo 60d', value: self.dashboard.contratosVencendo60d ?? '—' },
+            ],
+            alertas30: self.alertasVencendo30,
+            alertas60: self.alertasVencendo60,
+            getEstagiarioNome: function(c) { return self.contratoEstagiarioNome(c); },
+            getVagaCodigo:     function(c) { return self.contratoVagaCodigo(c); },
+          });
+          self.exportandoPdf = false;
+        }, 0);
       },
     };
   }
